@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Onyxalis.Objects.World
+namespace Onyxalis.Objects.Worlds
 {
     public class Tile
     {
@@ -16,8 +16,8 @@ namespace Onyxalis.Objects.World
             STONE,
             WOOD
         }
-        public int x { get; set; }
-        public int y { get; set; }
-        public TileType Type { get; set; }
+        public int x;
+        public int y;
+        public TileType Type;
     }
 }

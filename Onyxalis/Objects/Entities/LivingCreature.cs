@@ -15,7 +15,7 @@ namespace Onyxalis.Objects.Entities
 
         public Vector2 position;
 
-        public static HashMap<LivingCreature, UUID> creatures;
+        public static HashMap<UUID, LivingCreature> creatures;
 
         public double health;
         public double maxHealth;
@@ -31,6 +31,7 @@ namespace Onyxalis.Objects.Entities
 
         public Vector2 Acceleration;
         //StatusEffects effects
+
 
     }
 }

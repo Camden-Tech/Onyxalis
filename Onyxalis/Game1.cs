@@ -1,7 +1,10 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
+using Onyxalis.Objects.Worlds;
 using Onyxalis.Objects.Entities;
+using System;
+using System.Collections.Generic;
 
 namespace Onyxalis
 {
@@ -9,7 +12,7 @@ namespace Onyxalis
     {
         private GraphicsDeviceManager _graphics;
         private SpriteBatch _spriteBatch;
-        Player player;
+        public static Random GameRandom = new Random();
 
         public Game1()
         {
@@ -18,10 +21,30 @@ namespace Onyxalis
             IsMouseVisible = true;
         }
 
+        public bool BeginGameCreation()
+        {
+            try
+            {
+                
+                World world = World.CreateWorld();
+                Player player = new Player();
+                Vector2 spawnpoint = world.SpawnPlayerIn();
+
+                 
+            }
+            catch (Exception e)
+            {
+                //Log exception, make a popup with the error and a generated file.
+                return false;
+            }
+            return true;
+        }
+
+
+
         protected override void Initialize()
         {
             // TODO: Add your initialization logic here
-            player.position = new Vector2(0, 0);
 
             base.Initialize();
         }
@@ -36,8 +59,6 @@ namespace Onyxalis
         {
             if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || Keyboard.GetState().IsKeyDown(Keys.Escape))
                 Exit();
-            
-            // TODO: Add your update logic here
 
             base.Update(gameTime);
         }
@@ -46,7 +67,24 @@ namespace Onyxalis
         {
             GraphicsDevice.Clear(Color.CornflowerBlue);
 
-            // TODO: Add your drawing code here
+            _spriteBatch.Begin();
+            /*
+            switch (currentState)
+            {
+                case GameState.Lobby:
+                    // Draw lobby screen
+                    break;
+
+                case GameState.Playing:
+                    // Draw tiles
+                    _spriteBatch.Draw(tileTexture, tilePosition1, Color.White);
+                    _spriteBatch.Draw(tileTexture, tilePosition2, Color.White);
+                    break;
+            }*/
+
+            _spriteBatch.End();
+
+        
 
             base.Draw(gameTime);
         }

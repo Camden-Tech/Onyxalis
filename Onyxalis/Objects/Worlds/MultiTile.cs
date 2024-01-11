@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Onyxalis.Objects.World
+namespace Onyxalis.Objects.Worlds
 {
     public class MultiTile : Tile
     {

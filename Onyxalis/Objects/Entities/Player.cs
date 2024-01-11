@@ -23,7 +23,7 @@ namespace Onyxalis.Objects.Entities
             hunger = 0;
             hungerCap = 0;
         }
-
+        
         //Inventory inventory
 
         //Hotbar hotbar
