@@ -11,10 +11,25 @@ namespace Onyxalis.Objects.Worlds
     {
         public Tile[][] tiles;
 
-        public List<LivingCreature> nonPlayers;
+        public HashMap<UUID, LivingCreature> nonPlayers;
 
         public int x;
         public int y;
 
+        public World world;
+
+        public void GenerateTiles()
+        {
+            
+        }
+        
+        public static Chunk GenerateChunk(World world, bool generateTiles)
+        {
+            Chunk newChunk = new Chunk();
+            int seed = world.seed;
+            if(generateTiles) newChunk.GenerateTiles();
+            return newChunk;
+        }
+        
     }
 }
