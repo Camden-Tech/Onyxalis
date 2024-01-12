@@ -9,7 +9,7 @@ namespace Onyxalis.Objects.Worlds
 {
     public class World
     {
-        public Chunk[][] chunks;
+        public Chunk[,] chunks = new Chunk[2147483647, 2147483647;
         public int time;
         public Weather weather;
         public int seed;
@@ -27,30 +27,30 @@ namespace Onyxalis.Objects.Worlds
 
         public void GenerateSeed()
         {
-            seed = Game1.GameRandom.Next();
+            seed = Environment.TickCount;
             worldRandom = new Random(seed);
         }
 
 
         public Chunk GenerateChunk(int x, int y)
         {
-            Chunk newChunk = chunks[x][y];
+            Chunk newChunk = chunks[x, y];
             if(newChunk != null){
                 newChunk.GenerateTiles();
             } else {
-                newChunk = Chunk.CreateChunk(true); //Create CreateChunk() method, the boolean decides whether the chunk generates terrain or not.
+                newChunk = Chunk.CreateChunk(this, true); //Create CreateChunk() method, the boolean decides whether the chunk generates terrain or not.
             }
             
-            chunks[x][y] = newChunk;
+            chunks[x, y] = newChunk;
             return newChunk;
         }
 
         public Vector2 SpawnPlayerIn()
         {
             Vector2 position = new Vector2();
-            for (int x = 0; x < 5; x++)
+            for (int x = -5; x < 5; x++)
             {
-                for (int y = 0; y < 5; y++)
+                for (int y = -5; y < 5; y++)
                 {
                     GenerateChunk(x, y);
                 }
