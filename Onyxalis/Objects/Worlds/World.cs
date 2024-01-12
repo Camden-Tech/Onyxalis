@@ -9,7 +9,7 @@ namespace Onyxalis.Objects.Worlds
 {
     public class World
     {
-        public Chunk[,] chunks = new Chunk[2147483647, 2147483647;
+        public Chunk[,] chunks = new Chunk[2147483647, 2147483647];
         public int time;
         public Weather weather;
         public int seed;
