@@ -1,4 +1,6 @@
-﻿using Onyxalis.Objects.Entities;
+﻿using Lucene.Net.Support;
+using MiNET.Utils;
+using Onyxalis.Objects.Entities;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -23,7 +25,7 @@ namespace Onyxalis.Objects.Worlds
             
         }
         
-        public static Chunk GenerateChunk(World world, bool generateTiles)
+        public static Chunk CreateChunk(World world, bool generateTiles)
         {
             Chunk newChunk = new Chunk();
             int seed = world.seed;
