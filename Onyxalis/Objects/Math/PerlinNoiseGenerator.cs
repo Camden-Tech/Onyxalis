@@ -1,3 +1,5 @@
+using Microsoft.Xna.Framework;
+using Icaria.Engine.Procedural;
 using System;
 namespace Onyxalis.Objects.Math
 {
@@ -16,8 +18,8 @@ namespace Onyxalis.Objects.Math
                   {
                       float xCoord = x * frequency / width;
                       float yCoord = y * frequency / height;
-  
-                      float perlinValue = Mathf.PerlinNoise(xCoord, yCoord) * 2 - 1;
+
+                      float perlinValue = IcariaNoise.GradientNoise(xCoord, yCoord) * 2 - 1;
                       noiseMap[x, y] += perlinValue * amplitude;
                   }
               }
