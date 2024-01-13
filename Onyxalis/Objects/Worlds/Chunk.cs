@@ -11,7 +11,9 @@ namespace Onyxalis.Objects.Worlds
 {
     public class Chunk
     {
-        public Tile[][] tiles;
+        public Tile[,] tiles = new Tile[64,64];
+
+        public float[] heightMap = new float[64];
 
         public HashMap<UUID, LivingCreature> nonPlayers;
 
