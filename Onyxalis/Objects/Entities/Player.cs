@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.Xna.Framework;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -22,6 +23,8 @@ namespace Onyxalis.Objects.Entities
             staminaCap = 0;
             hunger = 0;
             hungerCap = 0;
+            // rectangular hitboxes
+            rect
         }
         
         //Inventory inventory
