@@ -60,24 +60,29 @@ namespace Onyxalis.Objects.Math
 
         public bool CollidesWith(Hitbox other)
         {
-            Vector2[] vertices1 = GetWorldSpaceVertices();
-            Vector2[] vertices2 = other.GetWorldSpaceVertices();
+            if (isCloseEnoughToCollide(other)) {
+                Vector2[] vertices1 = GetWorldSpaceVertices();
+                Vector2[] vertices2 = other.GetWorldSpaceVertices();
 
-            for (int i = 0; i < vertices1.Length; i++)
-            {
-                Vector2 axis = GetEdgeNormal(vertices1, i);
-
-                float min1, max1, min2, max2;
-                ProjectOntoAxis(vertices1, axis, out min1, out max1);
-                ProjectOntoAxis(vertices2, axis, out min2, out max2);
-
-                if (max1 < min2 || max2 < min1)
+                for (int i = 0; i < vertices1.Length; i++)
                 {
-                    return false;
-                }
-            }
+                    Vector2 axis = GetEdgeNormal(vertices1, i);
 
-            return true;
+                    float min1, max1, min2, max2;
+                    ProjectOntoAxis(vertices1, axis, out min1, out max1);
+                    ProjectOntoAxis(vertices2, axis, out min2, out max2);
+
+                    if (max1 < min2 || max2 < min1)
+                    {
+                        return false;
+                    }
+                }
+
+                return true;
+            } else
+            {
+                return false;
+            }
         }
 
         private Vector2[] GetWorldSpaceVertices()
