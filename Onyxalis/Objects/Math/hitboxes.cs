@@ -26,28 +26,72 @@ namespace Onyxalis.Objects.Math
             Rotation = rotation;
         }
 
-        public bool CollidesWith(Hitbox other)
+        public bool isCloseEnoughToCollide(Hitbox other)
         {
+<<<<<<< HEAD
             /* Function checks if a Hitbox object collides with the Hitbox object the function is
               instanced under */
             Vector2[] vertices1 = GetWorldSpaceVertices();
             Vector2[] vertices2 = other.GetWorldSpaceVertices();
 
             for (int i = 0; i < vertices1.Length; i++)
+=======
+            float distanceFromFarthestVerticeOne = 0;
+            for (int i = 0; i < Vertices.Length; i++)
+>>>>>>> 7859b27b0e747c61906117414b677b85625000c0
             {
-                Vector2 axis = GetEdgeNormal(vertices1, i);
-
-                float min1, max1, min2, max2;
-                ProjectOntoAxis(vertices1, axis, out min1, out max1);
-                ProjectOntoAxis(vertices2, axis, out min2, out max2);
-
-                if (max1 < min2 || max2 < min1)
+                Vector2 Vertice = Vertices[i];
+                float Distance = MathF.Sqrt(MathF.Pow( Vertice.X, 2) + MathF.Pow( Vertice.Y, 2));
+                if (Distance > distanceFromFarthestVerticeOne)
                 {
-                    return false;
+                    distanceFromFarthestVerticeOne = Distance;
                 }
             }
+            float distanceFromFarthestVerticeTwo = 0;
+            for (int i = 0; i < other.Vertices.Length; i++)
+            {
+                Vector2 Vertice = other.Vertices[i];
+                float Distance = MathF.Sqrt(MathF.Pow(Vertice.X, 2) + MathF.Pow(Vertice.Y, 2));
+                if (Distance > distanceFromFarthestVerticeTwo)
+                {
+                    distanceFromFarthestVerticeTwo = Distance;
+                }
+            }
+            float distanceOfPositions = MathF.Sqrt(MathF.Pow(other.Position.X - Position.X,2) + MathF.Pow( other.Position.Y - Position.Y, 2));
+            if (distanceOfPositions < distanceFromFarthestVerticeOne + distanceFromFarthestVerticeTwo)
+            {
+                return true;
+            }
+            return false;
 
-            return true;
+        }
+
+
+        public bool CollidesWith(Hitbox other)
+        {
+            if (isCloseEnoughToCollide(other)) {
+                Vector2[] vertices1 = GetWorldSpaceVertices();
+                Vector2[] vertices2 = other.GetWorldSpaceVertices();
+
+                for (int i = 0; i < vertices1.Length; i++)
+                {
+                    Vector2 axis = GetEdgeNormal(vertices1, i);
+
+                    float min1, max1, min2, max2;
+                    ProjectOntoAxis(vertices1, axis, out min1, out max1);
+                    ProjectOntoAxis(vertices2, axis, out min2, out max2);
+
+                    if (max1 < min2 || max2 < min1)
+                    {
+                        return false;
+                    }
+                }
+
+                return true;
+            } else
+            {
+                return false;
+            }
         }
 
         private Vector2[] GetWorldSpaceVertices()
