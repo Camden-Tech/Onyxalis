@@ -16,7 +16,7 @@ namespace Onyxalis.Objects.Entities
         {
             Velocity += Acceleration;
 
-            deltaX = (Velocity.X*delta) + (Acceleration.X/2 * (MathF.Pow(delta,2)));  // Get the change in X & Y using the 3rd kinematic equation
+            deltaX = (Velocity.X * delta) + (Acceleration.X / 2 * (MathF.Pow(delta,2)));  // Get the change in X & Y using the 3rd kinematic equation
             deltaY = (Velocity.Y * delta) + (Acceleration.Y / 2 * (MathF.Pow(delta, 2))); // https://www.khanacademy.org/science/physics/one-dimensional-motion/kinematic-formulas/a/what-are-the-kinematic-formulas?modal=1&referrer=upsell
 
             position.X += deltaX;
