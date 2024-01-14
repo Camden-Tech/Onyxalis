@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Onyxalis.Objects.Entities;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
@@ -10,6 +11,7 @@ namespace Onyxalis.Objects.Worlds
     public class World
     {
         public Chunk[,] chunks = new Chunk[2147483647, 2147483647];
+        public List<(int,int)> loadedChunks = new List<(int, int)>();
         public int time;
         public Weather weather;
         public int seed;
@@ -32,31 +34,46 @@ namespace Onyxalis.Objects.Worlds
         }
 
 
-        public Chunk GenerateChunk(int x, int y)
+        public Chunk LoadChunk(int x, int y)
         {
-            Chunk newChunk = chunks[x, y];
-            if(newChunk != null){
-                newChunk.GenerateTiles();
-            } else {
-                newChunk = Chunk.CreateChunk(this, true); //Create CreateChunk() method, the boolean decides whether the chunk generates terrain or not.
+            Chunk chunk = chunks[x, y];
+            if (chunk == null)
+            {
+                if (y == 0)
+                { 
+                    chunk = GenerateChunk(x, y, true);
+                } else
+                {
+                    chunk = GenerateChunk(x, y, false);
+                }
+                
             }
-            
+            loadedChunks.Add((x, y));
+            return chunk;
+        }
+
+        public Chunk GenerateChunk(int x, int y, bool surfaceChunk)
+        {
+            Chunk newChunk = Chunk.CreateChunk(this, true, surfaceChunk); //Create CreateChunk() method, the boolean decides whether the chunk generates terrain or not.
             chunks[x, y] = newChunk;
             return newChunk;
         }
 
-        public Vector2 SpawnPlayerIn()
+        public Vector2 GenerateSpawnLocation()
         {
-            Vector2 position = new Vector2();
+            Chunk[] viableChunks = new Chunk[10];
             for (int x = -5; x < 5; x++)
             {
                 for (int y = -5; y < 5; y++)
                 {
-                    GenerateChunk(x, y);
+                    Chunk loadedChunk = LoadChunk(x, y);
+                    if (y == 0) viableChunks[x] = loadedChunk;
                 }
             }
-            //Code for finding viable spawnpoint.
-            return position;
+            Chunk chosenChunk = viableChunks[Game1.GameRandom.Next(10)];
+            int chosenSpot = Game1.GameRandom.Next(64);
+            int y = ((int)chosenChunk.heightMap[chosenSpot]) + 8;
+            return new Vector2(chosenSpot, y); ;
         }
     }
 }

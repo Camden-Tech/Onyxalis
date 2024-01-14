@@ -3,8 +3,10 @@ using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using Onyxalis.Objects.Worlds;
 using Onyxalis.Objects.Entities;
+using Onyxalis.Objects.UI;
 using System;
 using System.Collections.Generic;
+using MiNET.Blocks;
 
 namespace Onyxalis
 {
@@ -13,6 +15,18 @@ namespace Onyxalis
         private GraphicsDeviceManager _graphics;
         private SpriteBatch _spriteBatch;
         public static Random GameRandom = new Random();
+        World world;
+        Player player = new Player();
+        Objects.UI.Camera camera = new Objects.UI.Camera();
+        GameState state = GameState.Menu;
+        public Dictionary<Tile.TileType, Texture2D> textureDictionary = new Dictionary<Tile.TileType, Texture2D>();
+
+
+        public enum GameState
+        {
+            Menu,
+            Game
+        }
 
         public Game1()
         {
@@ -25,11 +39,12 @@ namespace Onyxalis
         {
             try
             {
-                
-                World world = World.CreateWorld();
-                Player player = new Player();
-                Vector2 spawnpoint = world.SpawnPlayerIn();
 
+                world = World.CreateWorld();
+                Vector2 spawnLoc = world.GenerateSpawnLocation();
+                player.position = spawnLoc;
+                
+                state = GameState.Game;
                  
             }
             catch (Exception e)
@@ -45,7 +60,7 @@ namespace Onyxalis
         protected override void Initialize()
         {
             // TODO: Add your initialization logic here
-
+            BeginGameCreation();
             base.Initialize();
         }
         
@@ -59,7 +74,7 @@ namespace Onyxalis
         {
             if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || Keyboard.GetState().IsKeyDown(Keys.Escape))
                 Exit();
-
+            camera.position = player.position;
             base.Update(gameTime);
         }
 
@@ -68,19 +83,34 @@ namespace Onyxalis
             GraphicsDevice.Clear(Color.CornflowerBlue);
 
             _spriteBatch.Begin();
-            /*
-            switch (currentState)
+            
+            switch (state)
             {
-                case GameState.Lobby:
+                case GameState.Menu:
                     // Draw lobby screen
                     break;
 
-                case GameState.Playing:
-                    // Draw tiles
-                    _spriteBatch.Draw(tileTexture, tilePosition1, Color.White);
-                    _spriteBatch.Draw(tileTexture, tilePosition2, Color.White);
+                case GameState.Game:
+                    for (int i = 0; i < world.loadedChunks.Count; i++)
+                    {
+                        (int x, int y) = world.loadedChunks[i];
+                        Chunk chunk = world.chunks[x, y];
+                        for (int X = 0; X < 64; X++)
+                        {
+                            for (int Y = 0; Y < 64; Y++)
+                            {
+                                Tile tile = chunk.tiles[X, Y];
+                                if (tile != null)
+                                {
+                                    _spriteBatch.Draw(textureDictionary.GetValueOrDefault(tile.Type),new Vector2(tile.x,tile.y), Color.White);
+                                }
+                            }
+                        }
+                        
+                    }
+                    
                     break;
-            }*/
+            }
 
             _spriteBatch.End();
 

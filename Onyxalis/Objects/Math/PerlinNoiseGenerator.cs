@@ -5,7 +5,7 @@ namespace Onyxalis.Objects.Math
 {
   class PerlinNoiseGenerator
   {
-      static float[,] GeneratePerlinNoise(int width, int height, int octaves, float persistence, float frequency, float amplitude)
+      public static float[,] GeneratePerlinNoise(int width, int height, int octaves, float persistence, float frequency, float amplitude)
       {
           float[,] noiseMap = new float[width, height];
           
@@ -30,7 +30,7 @@ namespace Onyxalis.Objects.Math
   
           return noiseMap;
       }
-          static float[,] GeneratePerlinNoise(int width, int height, int octaves, float persistence)
+         public  static float[,] GeneratePerlinNoise(int width, int height, int octaves, float persistence)
       {
           float frequency = 1f;
           float amplitude = 1f;

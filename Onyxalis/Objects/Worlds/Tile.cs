@@ -16,6 +16,7 @@ namespace Onyxalis.Objects.Worlds
             STONE,
             WOOD
         }
+        //Each tile is 8x8
         public int x;
         public int y;
         public TileType Type;
