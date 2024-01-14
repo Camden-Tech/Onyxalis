@@ -7,12 +7,17 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
+using Onyxalis.Objects.Math;
 
 namespace Onyxalis.Objects.Entities
 {
     public class LivingCreature
     {
-        public void process_(float delta, Vector2 collisions)
+        public Vector2 Process_(float delta, Vector2 collisions, Hitbox[] possibleCollide)
+            /*
+             This function is the main process function for the rigid body LivingCreature class. 
+            It processes collisions and physics for rigid bodies.
+             */
         {
             Velocity += Acceleration;  // Move fast as hell boi
 
@@ -22,11 +27,12 @@ namespace Onyxalis.Objects.Entities
             if (collisions.X > 0)
             {
                 //  bouncy boi
-
+                if (hitbox)
             }
 
             position.X += deltaX;  // boilerplate
             position.Y += deltaY;  // please give me an internship Camden's dad
+            return collisions;
         }
         float deltaX, deltaY;  // change in x and y
 

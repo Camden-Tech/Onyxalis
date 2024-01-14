@@ -25,7 +25,8 @@ namespace Onyxalis.Objects.Entities
             hunger = 0;
             hungerCap = 0;
             // rectangular hitbox
-            hitbox = new Hitbox(new Vector2[] {new Vector2(32, 0), new Vector2(0, 0), new Vector2(32, 64), new Vector2(0, 64)}, spawnpoint);
+            hitbox = new Hitbox(new Vector2[] {new Vector2(0, 0), new Vector2(32, 0), new Vector2(0, 64), new Vector2(32, 64)}, spawnpoint);
+            // Top left, top right, bottom left, bottom right
         }
         
         //Inventory inventory
