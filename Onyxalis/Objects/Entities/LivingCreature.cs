@@ -27,7 +27,7 @@ namespace Onyxalis.Objects.Entities
             if (collisions.X > 0)
             {
                 //  bouncy boi
-                if (hitbox)
+                
             }
 
             position.X += deltaX;  // boilerplate

@@ -10,7 +10,7 @@ namespace Onyxalis.Objects.Entities
 {
     public class Player : LivingCreature
     {
-        public Player(Vector2 spawnpoint)
+        public Player()
         {
             network = 0;
             IpAddress = 0;
@@ -25,7 +25,7 @@ namespace Onyxalis.Objects.Entities
             hunger = 0;
             hungerCap = 0;
             // rectangular hitbox
-            hitbox = new Hitbox(new Vector2[] {new Vector2(0, 0), new Vector2(32, 0), new Vector2(0, 64), new Vector2(32, 64)}, spawnpoint);
+            hitbox = new Hitbox(new Vector2[] {new Vector2(0, 0), new Vector2(32, 0), new Vector2(0, 64), new Vector2(32, 64)}, position);
             // Top left, top right, bottom left, bottom right
         }
         

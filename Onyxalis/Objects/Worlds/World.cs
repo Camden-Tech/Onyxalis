@@ -12,7 +12,7 @@ namespace Onyxalis.Objects.Worlds
 {
     public class World
     {
-        public Chunks chunks;
+        public Chunks chunks = new Chunks();
         public struct Chunks
         {
             private Chunk[,] chunkArray;
@@ -31,7 +31,7 @@ namespace Onyxalis.Objects.Worlds
                 get
                 {
                     (int arrayX, int arrayY) = MapToWorldIndices(x, y);
-                    if (arrayX< 0 || arrayX >= chunkArray.GetLength(0) || arrayY< 0 || arrayY >= chunkArray.GetLength(1))
+                    if (arrayX < 0 || arrayX >= chunkArray.GetLength(0) || arrayY < 0 || arrayY >= chunkArray.GetLength(1))
                     {
                         throw new IndexOutOfRangeException("Coordinates are out of bounds.");
                     }
@@ -109,7 +109,7 @@ namespace Onyxalis.Objects.Worlds
                 for (int y = -5; y < 5; y++)
                 {
                     Chunk loadedChunk = LoadChunk(x, y);
-                    if (y == 0) viableChunks[x] = loadedChunk;
+                    if (y == 0) viableChunks[x + 5] = loadedChunk;
                 }
             }
             Chunk chosenChunk = viableChunks[Game1.GameRandom.Next(10)];
