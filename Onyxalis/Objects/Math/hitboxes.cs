@@ -28,6 +28,8 @@ namespace Onyxalis.Objects.Math
 
         public bool CollidesWith(Hitbox other)
         {
+            /* Function checks if a Hitbox object collides with the Hitbox object the function is
+              instanced under */
             Vector2[] vertices1 = GetWorldSpaceVertices();
             Vector2[] vertices2 = other.GetWorldSpaceVertices();
 
