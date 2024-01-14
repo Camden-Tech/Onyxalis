@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Onyxalis.Objects
+namespace Onyxalis.Objects.Math
 {
     public class Hitbox
     {

@@ -1,4 +1,5 @@
 ﻿using Microsoft.Xna.Framework;
+using Onyxalis.Objects.Math;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,7 +10,7 @@ namespace Onyxalis.Objects.Entities
 {
     public class Player : LivingCreature
     {
-        public Player() 
+        public Player(Vector2 spawnpoint)
         {
             network = 0;
             IpAddress = 0;
@@ -23,7 +24,8 @@ namespace Onyxalis.Objects.Entities
             staminaCap = 0;
             hunger = 0;
             hungerCap = 0;
-            // rectangular hitboxes
+            // rectangular hitbox
+            hitbox = new Hitbox(new Vector2[] {new Vector2(32, 0), new Vector2(0, 0), new Vector2(32, 64), new Vector2(0, 64)}, spawnpoint);
         }
         
         //Inventory inventory
@@ -60,5 +62,6 @@ namespace Onyxalis.Objects.Entities
 
         public int hungerCap;
 
+        public Hitbox hitbox;
     }
 }
