@@ -13,6 +13,7 @@ namespace Onyxalis.Objects
         public float Rotation { get; set; }
         public Vector2[] Vertices { get; set; }
 
+        
         public Hitbox(Vector2[] vertices, Vector2 position)
         {
             Position = position;
