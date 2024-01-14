@@ -24,7 +24,6 @@ namespace Onyxalis.Objects.Entities
             hunger = 0;
             hungerCap = 0;
             // rectangular hitboxes
-            rect
         }
         
         //Inventory inventory
