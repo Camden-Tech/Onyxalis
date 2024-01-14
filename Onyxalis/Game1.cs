@@ -117,8 +117,11 @@ namespace Onyxalis
         protected override void Draw(GameTime gameTime)
         {
             GraphicsDevice.Clear(Color.CornflowerBlue);
-            _spriteBatch.Begin(SpriteSortMode.Deferred,BlendState.Opaque,SamplerState.PointWrap);
-            
+            _spriteBatch.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend,
+                   SamplerState.PointClamp, DepthStencilState.Default,
+                   RasterizerState.CullCounterClockwise, null,
+                   Matrix.Identity);
+
             switch (state)
             {
                 case GameState.Menu:
@@ -144,7 +147,7 @@ namespace Onyxalis
                                         player.position.X = tile.x * Tile.tilesize;
                                         player.position.Y = tile.y * Tile.tilesize;
                                     }
-                                        _spriteBatch.Draw(dirtTexture, new Vector2(tile.x * Tile.tilesize - camera.position.X, tile.y * -Tile.tilesize + camera.position.Y), null, Color.White, 0, new Vector2(), 4, SpriteEffects.None, 0);
+                                        _spriteBatch.Draw(dirtTexture, new Vector2(tile.x * Tile.tilesize - camera.position.X, tile.y * -Tile.tilesize + camera.position.Y), null, Color.White, 0, new Vector2(), 2, SpriteEffects.None, 0);
                                 }
                             }
                         }
