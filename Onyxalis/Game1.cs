@@ -21,7 +21,7 @@ namespace Onyxalis
         Objects.UI.Camera camera = new Objects.UI.Camera();
         GameState state = GameState.Menu;
         public Dictionary<Tile.TileType, Texture2D> textureDictionary = new Dictionary<Tile.TileType, Texture2D>();
-
+        Texture2D dirtTexture;
 
         public enum GameState
         {
@@ -36,6 +36,10 @@ namespace Onyxalis
             _graphics = new GraphicsDeviceManager(this);
             Content.RootDirectory = "Content";
             IsMouseVisible = true;
+            _graphics.PreferredBackBufferWidth = 1920;
+            _graphics.PreferredBackBufferHeight = 1080;
+            _graphics.ApplyChanges();
+            
         }
 
         public bool BeginGameCreation()
@@ -45,6 +49,7 @@ namespace Onyxalis
 
                 world = World.CreateWorld();
                 Vector2 spawnLoc = world.GenerateSpawnLocation();
+                spawnLoc.Y *= -1;
                 player.position = spawnLoc;
                 Debug.WriteLine("asd ");
                 state = GameState.Game;
@@ -71,6 +76,7 @@ namespace Onyxalis
         protected override void LoadContent()
         {
             _spriteBatch = new SpriteBatch(GraphicsDevice);
+            dirtTexture = Content.Load<Texture2D>("Dirt");
             textureDictionary.Add(Tile.TileType.DIRT, Content.Load<Texture2D>("Dirt"));
             // TODO: use this.Content to load your game content here
         }
@@ -79,31 +85,39 @@ namespace Onyxalis
         {
             if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || Keyboard.GetState().IsKeyDown(Keys.Escape))
                 Exit();
+            camera.position = player.position;
             if (Keyboard.GetState().IsKeyDown(Keys.W))
             {
-                camera.position.X += 1;
+                player.position.Y += 64;
             }
             if (Keyboard.GetState().IsKeyDown(Keys.S))
             {
-                camera.position.X -= 1;
+                player.position.Y -= 64;
             }
             if (Keyboard.GetState().IsKeyDown(Keys.D))
             {
-                camera.position.Y += 1;
+                player.position.X += 64;
             }
             if (Keyboard.GetState().IsKeyDown(Keys.A))
             {
-                camera.position.X -= 1;
+                player.position.X -= 64;
             }
-            camera.position = player.position;
+            world.loadedChunks.Clear();
+            for (int x = -5; x < 5; x++)
+            {
+                for (int y = -5; y < 5; y++)
+                {
+                    world.LoadChunk((int)(player.position.X / Tile.tilesize / 64 + x), (int)(player.position.Y / Tile.tilesize / 64) + y);
+                }
+            }
+            
             base.Update(gameTime);
         }
 
         protected override void Draw(GameTime gameTime)
         {
-            Debug.WriteLine("1a ");
             GraphicsDevice.Clear(Color.CornflowerBlue);
-            _spriteBatch.Begin();
+            _spriteBatch.Begin(SpriteSortMode.Deferred,BlendState.Opaque,SamplerState.PointWrap);
             
             switch (state)
             {
@@ -112,23 +126,25 @@ namespace Onyxalis
                     break;
 
                 case GameState.Game:
-                    Debug.WriteLine("2 ");
                     for (int i = 0; i < world.loadedChunks.Count; i++)
                     {
-                        Debug.WriteLine("3 ");
-                        (int x, int y) = world.loadedChunks[i];
-                        Chunk chunk = world.chunks[x, y];
+                        (int x, int y, ChunkCluster cluster) = world.loadedChunks[i];
+                        Chunk chunk = cluster.chunks[x, y];
+                        (int tX, int tY) = (chunk.x * 16 + cluster.x * 1024, chunk.y * 16 + cluster.y * 1024);
                         for (int X = 0; X < 64; X++)
                         {
-                            Debug.WriteLine("4 ");
                             for (int Y = 0; Y < 64; Y++)
                             {
                                 Tile tile = chunk.tiles[X, Y];
-                                Debug.WriteLine("Tiles "+tile.Type);
                                 if (tile != null)
                                 {
-                                    Debug.WriteLine("5 ");
-                                    _spriteBatch.Draw(textureDictionary.GetValueOrDefault(tile.Type),new Vector2(tile.x - camera.position.X,tile.y - camera.position.Y), Color.White);
+                                    //textureDictionary.GetValueOrDefault(tile.Type)
+                                    if (Keyboard.GetState().IsKeyDown(Keys.F))
+                                    {
+                                        player.position.X = tile.x * Tile.tilesize;
+                                        player.position.Y = tile.y * Tile.tilesize;
+                                    }
+                                        _spriteBatch.Draw(dirtTexture, new Vector2(tile.x * Tile.tilesize - camera.position.X, tile.y * -Tile.tilesize + camera.position.Y), null, Color.White, 0, new Vector2(), 4, SpriteEffects.None, 0);
                                 }
                             }
                         }

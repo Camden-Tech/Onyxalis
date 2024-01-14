@@ -55,7 +55,7 @@ namespace Onyxalis.Objects.Entities
         public Vector2 Acceleration;
         //StatusEffects effects
 
-        public Vector2[] hitbox;
+        public Hitbox hitbox;
 
         public int gravity;
 

@@ -7,26 +7,34 @@ using System.Numerics;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
+using static Onyxalis.Objects.Worlds.World;
 
 namespace Onyxalis.Objects.Worlds
 {
     public class World
     {
-        public Chunks chunks = new Chunks();
-        public struct Chunks
+        public ChunkClusters clusters = new ChunkClusters();
+        Tiles tiles;
+        public World()
         {
-            private Chunk[,] chunkArray;
+            tiles = new Tiles(this);
+        }
+
+        
+        public struct ChunkClusters
+        {
+            private ChunkCluster[,] chunkArray;
             private const int Offset = 50;
-            public Chunks()
+            public ChunkClusters()
             {
-                chunkArray = new Chunk[100, 100];
+                chunkArray = new ChunkCluster [100, 100];
             }
 
             private (int, int) MapToWorldIndices(int x, int y)
             {
                 return (x + Offset, y + Offset);
             }
-            public Chunk this[int x, int y]
+            public ChunkCluster this[int x, int y]
             {
                 get
                 {
@@ -48,11 +56,42 @@ namespace Onyxalis.Objects.Worlds
                 }
             }
         }
+        public struct Tiles
+        {
+            private World world;
+            public Tiles(World w)
+            {
+                world = w;
+            }
+
+            public Tile this[int x, int y]
+            {
+                get
+                {
+                    (int cX, int cY) chunk = findChunk(x, y);
+                    (int clX, int clY) cluster = findChunkClusterPosition(chunk.cX, chunk.cY);
+                    (int whatCX, int whatCY) = (chunk.cX - cluster.clX * 16, chunk.cY - cluster.clY * 16);
+                    (int tX, int tY) tileInChunk = (x - chunk.cX * 64, y - chunk.cY * 64);
+                    ChunkCluster cCluster = world.clusters[cluster.clX, cluster.clY];
+                    Chunk cChunk = cCluster.chunks[whatCX, whatCY];
+                    Tile tile = cChunk.tiles[tileInChunk.tX, tileInChunk.tY];
+                    return tile;
+                }
+                set
+                {
+                    (int cX, int cY) chunk = findChunk(x, y);
+                    (int clX, int clY) cluster = findChunkClusterPosition(chunk.cX, chunk.cY);
+                    (int whatCX, int whatCY) = (chunk.cX - cluster.clX * 16, chunk.cY - cluster.clY * 16);
+                    (int tX, int tY) tileInChunk = (x - chunk.cX * 64, y - chunk.cY * 64);
+                    ChunkCluster cCluster = world.clusters[cluster.clX, cluster.clY];
+                    Chunk cChunk = cCluster.chunks[whatCX, whatCY];
+                    cChunk.tiles[tileInChunk.tX, tileInChunk.tY] = value;
+                }
+            }
+        }
         
 
-
-
-        public List<(int,int)> loadedChunks = new List<(int, int)>();
+        public List<(int,int, ChunkCluster)> loadedChunks = new List<(int, int, ChunkCluster)>();
         public int time;
         public Weather weather;
         public int seed;
@@ -66,8 +105,16 @@ namespace Onyxalis.Objects.Worlds
             return world;
         }
 
-        
+        public static (int x, int y) findChunkClusterPosition(int X, int Y)
+        {
+            
+            return ((int)MathF.Round((X-7.5f)/16f), (int)(MathF.Round((Y-7.5f) / 16f)));
+        }
 
+        public static (int x, int y) findChunk(int X, int Y)
+        {
+            return (X / 64, Y / 64); 
+        }
 
         public void GenerateSeed()
         {
@@ -78,44 +125,48 @@ namespace Onyxalis.Objects.Worlds
 
         public Chunk LoadChunk(int x, int y)
         {
-            Chunk chunk = chunks[x, y];
+            (int X, int Y) = findChunkClusterPosition(x, y);
+            ChunkCluster cluster = clusters[X, Y];
+            if (cluster == null)
+            {
+                cluster = CreateChunkCluster(X,Y);
+            }
+            int whatChunkX = x - X * 16;
+            int whatChunkY = y - Y * 16;
+            Chunk chunk = cluster.chunks[whatChunkX, whatChunkY];
             if (chunk == null)
             {
-                if (y == 0)
-                { 
-                    chunk = GenerateChunk(x, y, true);
-                } else
-                {
-                    chunk = GenerateChunk(x, y, false);
-                }
-                
+                chunk = cluster.GenerateChunk(whatChunkX, whatChunkY, true);
             }
-            loadedChunks.Add((x, y));
+            loadedChunks.Remove((whatChunkX,whatChunkY,cluster));
+            loadedChunks.Add((whatChunkX, whatChunkY, cluster));
             return chunk;
         }
-
-        public Chunk GenerateChunk(int x, int y, bool surfaceChunk)
+        public ChunkCluster CreateChunkCluster(int x, int y)
         {
-            Chunk newChunk = Chunk.CreateChunk(this, true, surfaceChunk); //Create CreateChunk() method, the boolean decides whether the chunk generates terrain or not.
-            chunks[x, y] = newChunk;
-            return newChunk;
+            ChunkCluster cluster = new ChunkCluster();
+            cluster.world = this;
+            cluster.GenerateHeightMap();
+            cluster.x = x; 
+            cluster.y = y;
+            clusters[x,y] = cluster;
+            return cluster;
         }
 
+
         public Vector2 GenerateSpawnLocation()
-        {
-            Chunk[] viableChunks = new Chunk[10];
+        { 
+            Chunk chosenChunk = null;
             for (int x = -5; x < 5; x++)
             {
                 for (int y = -5; y < 5; y++)
                 {
-                    Chunk loadedChunk = LoadChunk(x, y);
-                    if (y == 0) viableChunks[x + 5] = loadedChunk;
+                    chosenChunk = LoadChunk(x, y);
                 }
             }
-            Chunk chosenChunk = viableChunks[Game1.GameRandom.Next(10)];
             int chosenSpot = Game1.GameRandom.Next(64);
-            int Y = ((int)chosenChunk.heightMap[chosenSpot]) + 8;
-            return new Vector2(chosenSpot, Y); ;
+            int Y = ((int)chosenChunk.cluster.heightMap[chosenChunk.whatChunkInCluster.x * 16 + chosenSpot]) - chosenChunk.whatChunkInCluster.y * 64 - 4;
+            return new Vector2(chosenSpot + chosenChunk.x * 64, Y) * Tile.tilesize;
         }
     }
 }

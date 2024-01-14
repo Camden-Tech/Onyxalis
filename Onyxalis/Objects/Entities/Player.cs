@@ -62,7 +62,5 @@ namespace Onyxalis.Objects.Entities
         public int hunger;
 
         public int hungerCap;
-
-        public Hitbox hitbox;
     }
 }

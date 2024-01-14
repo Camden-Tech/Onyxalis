@@ -7,7 +7,7 @@ namespace Onyxalis.Objects.Math
 {
   class PerlinNoiseGenerator
   {
-      public static float[,] GeneratePerlinNoise(int width, int height, int octaves, float persistence, float frequency, float amplitude)
+      public static float[,] Generate2DPerlinNoise(int width, int height, int octaves, float persistence, float frequency, float amplitude)
       {
           float[,] noiseMap = new float[width, height];
 
@@ -31,13 +31,38 @@ namespace Onyxalis.Objects.Math
   
           return noiseMap;
       }
-      
-      
-        public  static float[,] GeneratePerlinNoise(int width, int height, int octaves, float persistence)
+        public static float[] GeneratePerlinNoise(int width, int octaves, float persistence, float frequency, float amplitude)
+        {
+            float[] noiseMap = new float[width];
+
+            for (int octave = 0; octave < octaves; octave++)
+            {
+                for (int x = 0; x < width; x++)
+                {
+                    float xCoord = x * frequency / width;
+
+                    float perlinValue = IcariaNoise.GradientNoise(xCoord, 0) * 2 - 1;
+                    noiseMap[x] += perlinValue * amplitude;
+                }
+                
+
+                frequency *= 2; // Increase the frequency for the next octave
+                amplitude *= persistence; // Reduce the amplitude for the next octave
+            }
+
+            return noiseMap;
+        }
+        public static float[] GeneratePerlinNoise(int width, int octaves, float persistence)
+        {
+            float frequency = 1f;
+            float amplitude = 1f;
+            return GeneratePerlinNoise(width, octaves, persistence, frequency, amplitude);
+        }
+        public  static float[,] Generate2DPerlinNoise(int width, int height, int octaves, float persistence)
       {
           float frequency = 1f;
           float amplitude = 1f;
-          return GeneratePerlinNoise(width, height, octaves, persistence, frequency, amplitude);
+          return Generate2DPerlinNoise(width, height, octaves, persistence, frequency, amplitude);
       }
   }
 }

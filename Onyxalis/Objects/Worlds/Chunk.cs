@@ -14,7 +14,8 @@ namespace Onyxalis.Objects.Worlds
     {
         public Tile[,] tiles = new Tile[64,64];
 
-        public float[] heightMap = new float[64];
+        public ChunkCluster cluster;
+        public (int x, int y) whatChunkInCluster;
 
         public HashMap<UUID, LivingCreature> nonPlayers;
 
@@ -25,33 +26,31 @@ namespace Onyxalis.Objects.Worlds
 
         public World world;
 
-        public float[] GenerateHeightMap()
-        {
-            float[,] perlinNoise = PerlinNoiseGenerator.GeneratePerlinNoise(64, 64, 4, 1);
-            for (int i = 0; i < 64; i++)
-            {
-                heightMap[i] = (perlinNoise[0, i]) + 32;
-            }
-            return heightMap;
-        }
+        
         public void GenerateTiles()
         {
-            GenerateHeightMap();
             for (int X = 0; X < 64; X++)
             {
-                for (int Y = 0; Y < (surfaceChunk ? 64 : heightMap[X]); Y++)
+                float height = cluster.heightMap[X + whatChunkInCluster.x * 64] - whatChunkInCluster.y * 64 - cluster.y * 1024;
+                for (int Y = 0; Y < height && Y < 64; Y++)
                 {
                     Tile tile = new Tile();
                     tile.x = X + x * 64;
-                    tile.y = Y + x * 64;
+                    tile.Type = Tile.TileType.DIRT;
+                    tile.y = Y + y * 64;
                     tiles[X, Y] = tile; 
                 }
             }
         }
         
-        public static Chunk CreateChunk(World world, bool GenerateTiles, bool SurfaceChunk)
+        public static Chunk CreateChunk(int X, int Y, World world, bool GenerateTiles, bool SurfaceChunk, ChunkCluster cluster)
         {
             Chunk newChunk = new Chunk();
+            newChunk.cluster = cluster;
+            newChunk.whatChunkInCluster.x = X;
+            newChunk.whatChunkInCluster.y = Y;
+            newChunk.x = X + cluster.x * 16;
+            newChunk.y = Y + cluster.y * 16;
             int seed = world.seed;
             newChunk.surfaceChunk = SurfaceChunk;
             if(GenerateTiles) newChunk.GenerateTiles();
