@@ -23,10 +23,15 @@ namespace Onyxalis.Objects.Entities
 
             deltaX = (Velocity.X * delta) + (Acceleration.X / 2 * (MathF.Pow(delta,2)));  // Get the change in X & Y using the 3rd kinematic equation
             deltaY = (Velocity.Y * delta) + (Acceleration.Y / 2 * (MathF.Pow(delta, 2))); // https://www.khanacademy.org/science/physics/one-dimensional-motion/kinematic-formulas/a/what-are-the-kinematic-formulas?modal=1&referrer=upsell
-            foreach (Hitbox box in possibleCollide) {
-                if (hitbox.CollidesWith(box)) {
-
-                } 
+            foreach (Hitbox box in possibleCollide)
+            {
+                if (hitbox.CollidesWith(box))
+                {
+                }
+                //if (collisions.X > 0)
+                //{
+                //    //  bouncy boi
+                //}
             }
             position.X += deltaX;  // boilerplate
             position.Y += deltaY;  // please give me an internship Camden's dad

@@ -30,7 +30,7 @@ namespace Onyxalis.Objects.Worlds
             float[,] perlinNoise = PerlinNoiseGenerator.GeneratePerlinNoise(64, 64, 4, 1);
             for (int i = 0; i < 64; i++)
             {
-                heightMap[i] = perlinNoise[0, i];
+                heightMap[i] = (perlinNoise[0, i]) + 32;
             }
             return heightMap;
         }
