@@ -20,7 +20,7 @@ namespace Onyxalis.Objects.Worlds
         
         public static World CreateWorld()
         {
-            World world = new World();
+            World world = new();
             world.GenerateSeed();
             world.weather = new Weather(); //Generate Weather Method
             return world;
