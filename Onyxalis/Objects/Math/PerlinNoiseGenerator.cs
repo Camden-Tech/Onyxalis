@@ -1,6 +1,8 @@
 using Microsoft.Xna.Framework;
 using Icaria.Engine.Procedural;
 using System;
+using System.Reflection.Metadata.Ecma335;
+
 namespace Onyxalis.Objects.Math
 {
   class PerlinNoiseGenerator
@@ -8,8 +10,7 @@ namespace Onyxalis.Objects.Math
       public static float[,] GeneratePerlinNoise(int width, int height, int octaves, float persistence, float frequency, float amplitude)
       {
           float[,] noiseMap = new float[width, height];
-          
-  
+
           for (int octave = 0; octave < octaves; octave++)
           {
               for (int y = 0; y < height; y++)
@@ -30,7 +31,9 @@ namespace Onyxalis.Objects.Math
   
           return noiseMap;
       }
-         public  static float[,] GeneratePerlinNoise(int width, int height, int octaves, float persistence)
+      
+      
+        public  static float[,] GeneratePerlinNoise(int width, int height, int octaves, float persistence)
       {
           float frequency = 1f;
           float amplitude = 1f;

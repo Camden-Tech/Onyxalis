@@ -72,8 +72,8 @@ namespace Onyxalis.Objects.Worlds
             }
             Chunk chosenChunk = viableChunks[Game1.GameRandom.Next(10)];
             int chosenSpot = Game1.GameRandom.Next(64);
-            int y = ((int)chosenChunk.heightMap[chosenSpot]) + 8;
-            return new Vector2(chosenSpot, y); ;
+            int Y = ((int)chosenChunk.heightMap[chosenSpot]) + 8;
+            return new Vector2(chosenSpot, Y); ;
         }
     }
 }

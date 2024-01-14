@@ -10,7 +10,6 @@ namespace Onyxalis.Objects.Worlds
     {
         public enum TileType
         {
-            AIR,
             GRASS,
             DIRT,
             STONE,
