@@ -13,11 +13,22 @@ namespace Onyxalis.Objects.Math
         public float Rotation { get; set; }
         public Vector2[] Vertices { get; set; }
 
-        
+        private float distanceFromFarthestVertice = 0;
+
+
         public Hitbox(Vector2[] vertices, Vector2 position)
         {
             Position = position;
             Vertices = vertices;
+            for (int i = 0; i < Vertices.Length; i++)
+            {
+                Vector2 Vertice = Vertices[i];
+                float Distance = MathF.Sqrt(MathF.Pow(Vertice.X, 2) + MathF.Pow(Vertice.Y, 2));
+                if (Distance > distanceFromFarthestVertice)
+                {
+                    distanceFromFarthestVertice = Distance;
+                }
+            }
         }
 
         public void Update(Vector2 position, float rotation)
@@ -28,33 +39,18 @@ namespace Onyxalis.Objects.Math
 
         public bool isCloseEnoughToCollide(Hitbox other)
         {
-            /* Function checks if a Hitbox object collides with the Hitbox object the function is
-              instanced under */
-            Vector2[] vertices1 = GetWorldSpaceVertices();
-            Vector2[] vertices2 = other.GetWorldSpaceVertices();
+            /* 
+             Check used to determine if an object is close enough for another object to collide with it.
+            This is called after deltas are added to a position. 
+            If the distance of the 
+             */
 
-            float distanceFromFarthestVerticeOne = 0;
-            for (int i = 0; i < Vertices.Length; i++)
-            {
-                Vector2 Vertice = Vertices[i];
-                float Distance = MathF.Sqrt(MathF.Pow( Vertice.X, 2) + MathF.Pow( Vertice.Y, 2));
-                if (Distance > distanceFromFarthestVerticeOne)
-                {
-                    distanceFromFarthestVerticeOne = Distance;
-                }
-            }
-            float distanceFromFarthestVerticeTwo = 0;
-            for (int i = 0; i < other.Vertices.Length; i++)
-            {
-                Vector2 Vertice = other.Vertices[i];
-                float Distance = MathF.Sqrt(MathF.Pow(Vertice.X, 2) + MathF.Pow(Vertice.Y, 2));
-                if (Distance > distanceFromFarthestVerticeTwo)
-                {
-                    distanceFromFarthestVerticeTwo = Distance;
-                }
-            }
+            
+
+            
+            
             float distanceOfPositions = MathF.Sqrt(MathF.Pow(other.Position.X - Position.X,2) + MathF.Pow( other.Position.Y - Position.Y, 2));
-            if (distanceOfPositions < distanceFromFarthestVerticeOne + distanceFromFarthestVerticeTwo)
+            if (distanceOfPositions < distanceFromFarthestVertice + other.distanceFromFarthestVertice)
             {
                 return true;
             }
@@ -65,6 +61,7 @@ namespace Onyxalis.Objects.Math
 
         public bool CollidesWith(Hitbox other)
         {
+
             if (isCloseEnoughToCollide(other)) {
                 Vector2[] vertices1 = GetWorldSpaceVertices();
                 Vector2[] vertices2 = other.GetWorldSpaceVertices();
