@@ -28,17 +28,13 @@ namespace Onyxalis.Objects.Math
 
         public bool isCloseEnoughToCollide(Hitbox other)
         {
-<<<<<<< HEAD
             /* Function checks if a Hitbox object collides with the Hitbox object the function is
               instanced under */
             Vector2[] vertices1 = GetWorldSpaceVertices();
             Vector2[] vertices2 = other.GetWorldSpaceVertices();
 
-            for (int i = 0; i < vertices1.Length; i++)
-=======
             float distanceFromFarthestVerticeOne = 0;
             for (int i = 0; i < Vertices.Length; i++)
->>>>>>> 7859b27b0e747c61906117414b677b85625000c0
             {
                 Vector2 Vertice = Vertices[i];
                 float Distance = MathF.Sqrt(MathF.Pow( Vertice.X, 2) + MathF.Pow( Vertice.Y, 2));
