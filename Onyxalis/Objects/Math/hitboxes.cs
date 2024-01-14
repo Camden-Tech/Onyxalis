@@ -26,6 +26,38 @@ namespace Onyxalis.Objects.Math
             Rotation = rotation;
         }
 
+        public bool isCloseEnoughToCollide(Hitbox other)
+        {
+            float distanceFromFarthestVerticeOne = 0;
+            for (int i = 0; i < Vertices.Length; i++)
+            {
+                Vector2 Vertice = Vertices[i];
+                float Distance = MathF.Sqrt(MathF.Pow( Vertice.X, 2) + MathF.Pow( Vertice.Y, 2));
+                if (Distance > distanceFromFarthestVerticeOne)
+                {
+                    distanceFromFarthestVerticeOne = Distance;
+                }
+            }
+            float distanceFromFarthestVerticeTwo = 0;
+            for (int i = 0; i < other.Vertices.Length; i++)
+            {
+                Vector2 Vertice = other.Vertices[i];
+                float Distance = MathF.Sqrt(MathF.Pow(Vertice.X, 2) + MathF.Pow(Vertice.Y, 2));
+                if (Distance > distanceFromFarthestVerticeTwo)
+                {
+                    distanceFromFarthestVerticeTwo = Distance;
+                }
+            }
+            float distanceOfPositions = MathF.Sqrt(MathF.Pow(other.Position.X - Position.X,2) + MathF.Pow( other.Position.Y - Position.Y, 2));
+            if (distanceOfPositions < distanceFromFarthestVerticeOne + distanceFromFarthestVerticeTwo)
+            {
+                return true;
+            }
+            return false;
+
+        }
+
+
         public bool CollidesWith(Hitbox other)
         {
             Vector2[] vertices1 = GetWorldSpaceVertices();

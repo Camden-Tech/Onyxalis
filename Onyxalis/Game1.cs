@@ -139,6 +139,7 @@ namespace Onyxalis
                             for (int Y = 0; Y < 64; Y++)
                             {
                                 Tile tile = chunk.tiles[X, Y];
+                                
                                 if (tile != null)
                                 {
                                     //textureDictionary.GetValueOrDefault(tile.Type)
