@@ -1,8 +1,10 @@
-﻿using Onyxalis.Objects.Entities;
+﻿using Newtonsoft.Json.Linq;
+using Onyxalis.Objects.Entities;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -10,14 +12,52 @@ namespace Onyxalis.Objects.Worlds
 {
     public class World
     {
-        public Chunk[,] chunks = new Chunk[2147483647, 2147483647];
+        public Chunks chunks;
+        public struct Chunks
+        {
+            private Chunk[,] chunkArray;
+            private const int Offset = 50;
+            public Chunks()
+            {
+                chunkArray = new Chunk[100, 100];
+            }
+
+            private (int, int) MapToWorldIndices(int x, int y)
+            {
+                return (x + Offset, y + Offset);
+            }
+            public Chunk this[int x, int y]
+            {
+                get
+                {
+                    (int arrayX, int arrayY) = MapToWorldIndices(x, y);
+                    if (arrayX< 0 || arrayX >= chunkArray.GetLength(0) || arrayY< 0 || arrayY >= chunkArray.GetLength(1))
+                    {
+                        throw new IndexOutOfRangeException("Coordinates are out of bounds.");
+                    }
+                    return chunkArray[arrayX, arrayY];
+                }
+                set
+                {
+                    (int arrayX, int arrayY) = MapToWorldIndices(x, y);
+                    if (arrayX< 0 || arrayX >= chunkArray.GetLength(0) || arrayY< 0 || arrayY >= chunkArray.GetLength(1))
+                    {
+                        throw new IndexOutOfRangeException("Coordinates are out of bounds.");
+                    }
+                    chunkArray[arrayX, arrayY] = value;
+                }
+            }
+        }
+        
+
+
+
         public List<(int,int)> loadedChunks = new List<(int, int)>();
         public int time;
         public Weather weather;
         public int seed;
         public Random worldRandom;
 
-        
         public static World CreateWorld()
         {
             World world = new();
@@ -25,6 +65,8 @@ namespace Onyxalis.Objects.Worlds
             world.weather = new Weather(); //Generate Weather Method
             return world;
         }
+
+        
 
 
         public void GenerateSeed()
