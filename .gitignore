@@ -10,6 +10,9 @@
 *.userosscache
 *.sln.docstates
 
+#worlds
+Onyxalis/Worlds
+
 # User-specific files (MonoDevelop/Xamarin Studio)
 *.userprefs
 
