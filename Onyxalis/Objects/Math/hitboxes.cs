@@ -1,4 +1,5 @@
 ﻿using Microsoft.Xna.Framework;
+using MiNET.Sounds;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -42,13 +43,12 @@ namespace Onyxalis.Objects.Math
             /* 
              Check used to determine if an object is close enough for another object to collide with it.
             This is called after deltas are added to a position. 
-            If the distance of the 
+            If the distance of the object to another object is less than the distance
+            of the farthest vertice of the object plus the object it could collide so it returns true.
+            In psudocode this means:
+            if (Farthest vertex from  + D2) < 
              */
 
-            
-
-            
-            
             float distanceOfPositions = MathF.Sqrt(MathF.Pow(other.Position.X - Position.X,2) + MathF.Pow( other.Position.Y - Position.Y, 2));
             if (distanceOfPositions < distanceFromFarthestVertice + other.distanceFromFarthestVertice)
             {
@@ -60,34 +60,35 @@ namespace Onyxalis.Objects.Math
 
 
         public bool CollidesWith(Hitbox other)
+            // Check to see if an object collides with another obejct
         {
 
-            if (isCloseEnoughToCollide(other)) {
-                Vector2[] vertices1 = GetWorldSpaceVertices();
-                Vector2[] vertices2 = other.GetWorldSpaceVertices();
-
-                for (int i = 0; i < vertices1.Length; i++)
-                {
-                    Vector2 axis = GetEdgeNormal(vertices1, i);
-
-                    float min1, max1, min2, max2;
-                    ProjectOntoAxis(vertices1, axis, out min1, out max1);
-                    ProjectOntoAxis(vertices2, axis, out min2, out max2);
-
-                    if (max1 < min2 || max2 < min1)
-                    {
-                        return false;
-                    }
-                }
-
-                return true;
-            } else
-            {
+            if (!isCloseEnoughToCollide(other)) {  // ignore if you don't care about optimization
+                // Break when the distance is too far to collide with the updated position after physics are applied
                 return false;
             }
+            Vector2[] vertices1 = GetWorldSpaceVertices();  // Get the verticies of the hitbox
+            Vector2[] vertices2 = other.GetWorldSpaceVertices();  // Get the verticies of the object you're checking
+
+            for (int i = 0; i < vertices1.Length; i++)
+            {
+                Vector2 axis = GetEdgeNormal(vertices1, i);
+
+                float min1, max1, min2, max2;
+                ProjectOntoAxis(vertices1, axis, out min1, out max1);
+                ProjectOntoAxis(vertices2, axis, out min2, out max2);
+
+                if (max1 < min2 || max2 < min1)
+                {
+                    return false;
+                }
+            }
+
+            return true;
         }
 
-        private Vector2[] GetWorldSpaceVertices()
+        public Vector2[] GetWorldSpaceVertices()  // Get the verticies of the hitbox in relation to the world
+            // Verticies are stored in relation to when the object is instanced & not when the position is changed.
         {
             Vector2[] transformedVertices = new Vector2[Vertices.Length];
             for (int i = 0; i < Vertices.Length; i++)
