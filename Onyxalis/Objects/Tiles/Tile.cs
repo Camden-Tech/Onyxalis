@@ -27,7 +27,7 @@ namespace Onyxalis.Objects.Tiles
         }
         public Tile()
         {
-            hitbox = new Hitbox(new Vector2[] { new Vector2(0, 0), new Vector2(Tile.tilesize, 0), new Vector2(Tile.tilesize, Tile.tilesize), new Vector2(0, Tile.tilesize) }, Vector2.Zero);
+            hitbox = new Hitbox(new Vector2[] { new Vector2(0, 0), new Vector2(Tile.tilesize, 0), new Vector2(Tile.tilesize, -Tile.tilesize), new Vector2(0, -Tile.tilesize) }, Vector2.Zero, 2);
         }
         //Each tile is 8x8
         public Hitbox hitbox;

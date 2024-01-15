@@ -10,12 +10,15 @@ using System.Threading.Tasks;
 using Onyxalis.Objects.Math;
 using MiNET.Items;
 using System.Reflection.Metadata.Ecma335;
+using Onyxalis.Objects.Worlds;
+using Onyxalis.Objects.Tiles;
 
 namespace Onyxalis.Objects.Entities
 {
     public class LivingCreature
     {
-        public Vector2 Process_(float delta, Hitbox[] possibleCollide)
+        public Vector2 Process_(float delta)
+            
             /*
              This function is the main process function for the rigid body LivingCreature class. 
             It processes collisions and physics for rigid bodies.
@@ -24,23 +27,25 @@ namespace Onyxalis.Objects.Entities
             possibleCollide = objects that the object could collide with
              */
         {
+            
             Velocity += Acceleration;  // Move fast as hell boi
 
             deltaX = (Velocity.X * delta) + (Acceleration.X / 2 * (MathF.Pow(delta, 2)));  // Get the change in X & Y using the 3rd kinematic equation
             deltaY = (Velocity.Y * delta) + (Acceleration.Y / 2 * (MathF.Pow(delta, 2))); // https://www.khanacademy.org/science/physics/one-dimensional-motion/kinematic-formulas/a/what-are-the-kinematic-formulas?modal=1&referrer=upsell
-            oldPos = position;
+            oldPos.X = position.X;
+            oldPos.Y = position.Y;
             position.X += deltaX;  // boilerplate
             position.Y += deltaY;  // please give me an internship Camden's dad
             hitbox.Update(position, 0);
-
+            Hitbox[] possibleCollide = getTileHitboxesNearCreature();
             foreach (Hitbox box in possibleCollide)  // Check collisions
             {
                 if (hitbox.CollidesWith(box))
                 {
-                    //hitbox.Update(oldPos, 0);
-                    //position = oldPos;
-                    //Velocity = Vector2.Zero;
-                    //Acceleration = Vector2.Zero;
+                   hitbox.Update(oldPos, 0);
+                   position = oldPos;
+                    Velocity = Vector2.Zero;
+                   Acceleration = Vector2.Zero;
                     /*
                     // Step 1: Get the closest vertex on the this object to draw a line from later
                     float lastDistance = -1;
@@ -121,17 +126,38 @@ namespace Onyxalis.Objects.Entities
             return position;
         }
         public float deltaX, deltaY;  // change in x and y
-
+        public float scale;
         private float currentDistance;
 
+        public Hitbox[] getTileHitboxesNearCreature()
+        {
+            List<Hitbox> hitboxes = new List<Hitbox>();
+            (int X, int Y) pos = World.findTilePosition(position.X, position.Y);
+            float textureSizeX = (hitbox.Vertices[2].X / Tile.tilesize) + 1;
+            float textureSizeY = (hitbox.Vertices[2].Y / Tile.tilesize);
+            for (int X = 0; X < textureSizeX; X++)
+            {
+                for (int Y = 0; Y < -textureSizeY; Y++)
+                {
+                    Tile tile = world.tiles[pos.X + X, pos.Y - Y];
+                    
+                    if (tile != null)
+                    {
+                        hitboxes.Add(tile.hitbox);
+                    }
+                }
+            }
+            return hitboxes.ToArray();
+        }
 
 
 
-        public Vector2 position;
-        public Vector2 oldPos;
-
+        public Vector2 position, oldPos;
 
         public static HashMap<UUID, LivingCreature> creatures;
+
+
+        public World world;
 
         public double health;
         public double maxHealth;

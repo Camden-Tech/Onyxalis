@@ -56,6 +56,8 @@ namespace Onyxalis
                 spawnLoc.Y *= -1;
                 //player.position = spawnLoc;
                 player.position = new Vector2(500,500);
+                player.world = world;
+                player.scale = 2;
                 Debug.WriteLine("asd ");
                 state = GameState.Game;
 
@@ -90,7 +92,7 @@ namespace Onyxalis
             tileTextureDictionary.Add(Tile.TileType.DIRT4, Content.Load<Texture2D>("DirtFour"));
             // TODO: use this.Content to load your game content here
             Texture2D texture = playerTextureDictionary[Player.PlayerTextures.Body];
-            player.hitbox = new Hitbox(new Vector2[] { new Vector2(0,0), new Vector2(texture.Width, 0), new Vector2(texture.Width, texture.Height), new Vector2(0, texture.Height)}, player.position);
+            player.hitbox = new Hitbox(new Vector2[] { new Vector2(0,0), new Vector2(texture.Width, 0), new Vector2(texture.Width, -texture.Height), new Vector2(0, -texture.Height) }, player.position, 2);
         }
 
         protected override void Update(GameTime gameTime)
@@ -121,31 +123,14 @@ namespace Onyxalis
             {
                 for (int y = -5; y < 5; y++)
                 {
-                    if ((int)(player.position.X / (Tile.tilesize) / 64 + x) < -500 || (int)(player.position.Y / (Tile.tilesize) / 64) < -500)
-                    {
-                        //asda
-                    }
                     Chunk c = world.LoadChunk((int)(player.position.X / (Tile.tilesize) / 64 + x), (int)(player.position.Y / (Tile.tilesize) / 64) + y);
 
                     c.loaded = true;
                 }
             }
 
-            List<Hitbox> tileHitboxes = new List<Hitbox>();
-            (int X, int Y) = World.findTilePosition(player.position.X, player.position.Y);
-            Tile tile = world.tiles[X, Y];
-            if (tile != null)
-            {
-                tileHitboxes.Add(tile.hitbox);
-            }
-            tile = new Tile();
-            tile.x = X;
-            tile.y = Y;
-            tile.Type = Tile.TileType.GRASS;
-            world.tiles[X, Y] = tile;
-            
-            
-            player.Process_((float)gameTime.ElapsedGameTime.TotalSeconds, tileHitboxes.ToArray());
+
+            player.Process_((float)gameTime.ElapsedGameTime.TotalSeconds);
             foreach ((int x, int y) pos in world.loadedChunks.Keys)
             {
                 Chunk c = world.loadedChunks[pos];
@@ -181,7 +166,6 @@ namespace Onyxalis
 
                                 _spriteBatch.Draw(tileTexture, pos, null, Color.White, MathHelper.ToRadians(90 * tile.rotation), origin, 2, SpriteEffects.None, 0);
 
-
                             }
                             if (Keyboard.GetState().IsKeyDown(Keys.F))
                             {
@@ -199,7 +183,7 @@ namespace Onyxalis
         {
 
             Texture2D texture = playerTextureDictionary[Player.PlayerTextures.Body];
-            _spriteBatch.Draw(texture, new Vector2(1920 - texture.Width / 2, 1080 - texture.Height / 2) / 2, null, Color.White, 0, new Vector2(), 2, SpriteEffects.None, 0);
+            _spriteBatch.Draw(texture, new Vector2(1920 - texture.Width / 2, 1080 - texture.Height / 2) / 2, null, Color.White, 0, new Vector2(), player.scale, SpriteEffects.None, 0);
         }
 
 

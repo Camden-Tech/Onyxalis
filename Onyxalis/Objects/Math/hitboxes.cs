@@ -12,16 +12,23 @@ namespace Onyxalis.Objects.Math
     {
         public Vector2 Position { get; set; }
         public float Rotation { get; set; }
+        public float Scale { get; set; }
+        public Vector2[] unscaledVertices { get; set; }
         public Vector2[] Vertices { get; set; }
 
         private float distanceFromFarthestVertice = 0;
 
-
-        public Hitbox(Vector2[] vertices, Vector2 position)
+        public Vector2 oldPos { get; set; }
+        public Hitbox(Vector2[] vertices, Vector2 position, float scale)
         {
             Position = position;
+            unscaledVertices = (Vector2[])vertices.Clone();
             Vertices = vertices;
             Rotation = 0;
+            for (int i = 0; i < Vertices.Length; i++)
+            {
+                Vertices[i] = unscaledVertices[i] * scale;
+            }
             for (int i = 0; i < Vertices.Length; i++)
             {
                 Vector2 Vertice = Vertices[i];
@@ -32,9 +39,18 @@ namespace Onyxalis.Objects.Math
                 }
             }
         }
-
+        public void updateScale(float scale)
+        {
+            for (int i = 0; i < Vertices.Length; i++)
+            {
+                Vertices[i] = unscaledVertices[i] * scale;
+            }
+            Scale = scale;
+        }
         public void Update(Vector2 position, float rotation)
         {
+
+
             Position = position;
             Rotation = rotation;
         }
