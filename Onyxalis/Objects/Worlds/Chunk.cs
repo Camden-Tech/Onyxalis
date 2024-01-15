@@ -2,19 +2,23 @@
 using MiNET.Utils;
 using Onyxalis.Objects.Entities;
 using Onyxalis.Objects.Math;
+using Onyxalis.Objects.Tiles;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Runtime.Serialization;
 using System.Text;
 using System.Threading.Tasks;
 
 namespace Onyxalis.Objects.Worlds
 {
+    
     public class Chunk
     {
         public Tile[,] tiles = new Tile[64,64];
 
-        public ChunkCluster cluster;
+        public ChunkCluster cluster; // Do not serialize
         public (int x, int y) whatChunkInCluster;
 
         public HashMap<UUID, LivingCreature> nonPlayers;
@@ -22,11 +26,11 @@ namespace Onyxalis.Objects.Worlds
         public bool surfaceChunk;
 
         public int x;
-        public int y;
+         public int y;
 
-        public World world;
+        public bool loaded;
+        public World world; //Do not serialize
 
-        
         public void GenerateTiles()
         {
             for (int X = 0; X < 64; X++)
@@ -36,8 +40,10 @@ namespace Onyxalis.Objects.Worlds
                 {
                     Tile tile = new Tile();
                     tile.x = X + x * 64;
-                    tile.Type = Tile.TileType.DIRT;
+                    tile.Type = (Tile.TileType)cluster.chunkRandom.Next(2)+1;
                     tile.y = Y + y * 64;
+                    tile.chunkPos = (X, Y);
+                    tile.rotation = cluster.chunkRandom.Next(4);
                     tiles[X, Y] = tile; 
                 }
             }
@@ -46,6 +52,7 @@ namespace Onyxalis.Objects.Worlds
         public static Chunk CreateChunk(int X, int Y, World world, bool GenerateTiles, bool SurfaceChunk, ChunkCluster cluster)
         {
             Chunk newChunk = new Chunk();
+            
             newChunk.cluster = cluster;
             newChunk.whatChunkInCluster.x = X;
             newChunk.whatChunkInCluster.y = Y;

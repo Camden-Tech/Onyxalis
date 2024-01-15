@@ -3,17 +3,14 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Onyxalis.Objects.Tiles;
 
-namespace Onyxalis.Objects.Worlds
+namespace Onyxalis.Objects.Tiles
 {
-    public class ClampedTiles
+    public class Dirt : Tile
     {
-        public Tile[,] tiles;
-
-        public ClampedTiles()
+        public Dirt() 
         {
-
+            
         }
     }
 }

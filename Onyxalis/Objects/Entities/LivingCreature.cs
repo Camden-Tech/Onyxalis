@@ -13,6 +13,7 @@ using System.Reflection.Metadata.Ecma335;
 
 namespace Onyxalis.Objects.Entities
 {
+    [Serializable]
     public class LivingCreature
     {
         public Vector2 Process_(float delta, Hitbox[] possibleCollide)

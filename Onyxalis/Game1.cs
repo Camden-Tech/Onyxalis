@@ -8,6 +8,7 @@ using System;
 using System.Collections.Generic;
 using MiNET.Blocks;
 using System.Diagnostics;
+using Onyxalis.Objects.Tiles;
 
 namespace Onyxalis
 {
@@ -16,12 +17,11 @@ namespace Onyxalis
         private GraphicsDeviceManager _graphics;
         private SpriteBatch _spriteBatch;
         public static Random GameRandom = new Random();
-        World world;
+        public static World world;
         Player player = new Player();
         Objects.UI.Camera camera = new Objects.UI.Camera();
         GameState state = GameState.Menu;
         public Dictionary<Tile.TileType, Texture2D> textureDictionary = new Dictionary<Tile.TileType, Texture2D>();
-        Texture2D dirtTexture;
 
         public enum GameState
         {
@@ -76,8 +76,8 @@ namespace Onyxalis
         protected override void LoadContent()
         {
             _spriteBatch = new SpriteBatch(GraphicsDevice);
-            dirtTexture = Content.Load<Texture2D>("Dirt");
-            textureDictionary.Add(Tile.TileType.DIRT, Content.Load<Texture2D>("Dirt"));
+            textureDictionary.Add(Tile.TileType.DIRT1, Content.Load<Texture2D>("Dirt"));
+            textureDictionary.Add(Tile.TileType.DIRT2, Content.Load<Texture2D>("DirtTwo"));
             // TODO: use this.Content to load your game content here
         }
 
@@ -102,17 +102,33 @@ namespace Onyxalis
             {
                 player.position.X -= 64;
             }
-            world.loadedChunks.Clear();
+            
             for (int x = -5; x < 5; x++)
             {
                 for (int y = -5; y < 5; y++)
                 {
-                    world.LoadChunk((int)(player.position.X / Tile.tilesize / 64 + x), (int)(player.position.Y / Tile.tilesize / 64) + y);
+                    Chunk c = world.LoadChunk((int)(player.position.X / Tile.tilesize / 64 + x), (int)(player.position.Y / Tile.tilesize / 64) + y);
+                    c.loaded = true;
                 }
+            }
+            foreach ((int x, int y) pos in world.loadedChunks.Keys)
+            {
+                Chunk c = world.loadedChunks[pos];
+                if (!c.loaded)
+                {
+                    world.UnloadChunk(pos);
+                } else
+                {
+                    c.loaded = false;
+                    world.loadedChunks[pos] = c;
+                }
+
+
             }
             
             base.Update(gameTime);
         }
+
 
         protected override void Draw(GameTime gameTime)
         {
@@ -129,27 +145,32 @@ namespace Onyxalis
                     break;
 
                 case GameState.Game:
-                    for (int i = 0; i < world.loadedChunks.Count; i++)
+                    foreach (Chunk chunk in world.loadedChunks.Values)
                     {
-                        (int x, int y, ChunkCluster cluster) = world.loadedChunks[i];
-                        Chunk chunk = cluster.chunks[x, y];
-                        (int tX, int tY) = (chunk.x * 16 + cluster.x * 1024, chunk.y * 16 + cluster.y * 1024);
                         for (int X = 0; X < 64; X++)
                         {
                             for (int Y = 0; Y < 64; Y++)
                             {
                                 Tile tile = chunk.tiles[X, Y];
-                                
                                 if (tile != null)
                                 {
-                                    //textureDictionary.GetValueOrDefault(tile.Type)
+                                    Vector2 pos = new Vector2(tile.x * Tile.tilesize - camera.position.X, tile.y * -Tile.tilesize + camera.position.Y);
+                                    if (pos.X > -Tile.tilesize && pos.X < 1980 + Tile.tilesize && pos.Y > -Tile.tilesize && pos.Y < 1080 + Tile.tilesize)
+                                    {
+                                        Texture2D tileTexture = textureDictionary.GetValueOrDefault(tile.Type);
+                                        Vector2 origin = new Vector2(tileTexture.Width / 2f, tileTexture.Height / 2f);
+
+                                        _spriteBatch.Draw(tileTexture, pos, null, Color.White, MathHelper.ToRadians(90 * tile.rotation), origin, 2, SpriteEffects.None, 0);
+
+                                        
+                                    }
                                     if (Keyboard.GetState().IsKeyDown(Keys.F))
                                     {
                                         player.position.X = tile.x * Tile.tilesize;
                                         player.position.Y = tile.y * Tile.tilesize;
                                     }
-                                        _spriteBatch.Draw(dirtTexture, new Vector2(tile.x * Tile.tilesize - camera.position.X, tile.y * -Tile.tilesize + camera.position.Y), null, Color.White, 0, new Vector2(), 2, SpriteEffects.None, 0);
                                 }
+                                
                             }
                         }
                         
