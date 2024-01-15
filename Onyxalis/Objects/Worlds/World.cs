@@ -1,14 +1,19 @@
 ﻿using Lucene.Net.Support;
+using MiNET.Utils;
 using Newtonsoft.Json.Linq;
 using Onyxalis.Objects.Entities;
+using Onyxalis.Objects.Systems;
 using Onyxalis.Objects.Tiles;
 using Org.BouncyCastle.Tls.Crypto.Impl.BC;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Numerics;
 using System.Runtime.CompilerServices;
 using System.Text;
+using System.Text.Json;
 using System.Threading.Tasks;
 using System.Xml.Serialization;
 using static Onyxalis.Objects.Worlds.World;
@@ -17,10 +22,14 @@ namespace Onyxalis.Objects.Worlds
 {
     public class World
     {
+        public string name;
         public ChunkClusters clusters = new ChunkClusters();
         public LoadedTiles tiles;
+        Guid uuid;
         public World()
         {
+            uuid = Guid.NewGuid();
+            name = uuid.ToString();
             tiles = new LoadedTiles(this);
         }
 
@@ -127,25 +136,42 @@ namespace Onyxalis.Objects.Worlds
         public void UnloadChunk((int x, int y) pos)
         {
             Chunk c = loadedChunks[pos];
+            writeChunkFile(c);
             c.cluster.chunks[c.whatChunkInCluster.x, c.whatChunkInCluster.y] = null;
             loadedChunks.Remove(pos);
+        }
+
+        public string writeChunkFile(Chunk c)
+        {
+            string currentDirectory = AppDomain.CurrentDomain.BaseDirectory;
+
+            // Navigate up three directories to reach Onxyalis
+            string onyxalisDirectory = Path.GetFullPath(Path.Combine(currentDirectory, @"..\..\..\..\"));
+
+            // Construct the new file path
+            string filePath = Path.Combine(onyxalisDirectory, $"Worlds/" + name);
+
+
+
+            // Navigate up one directory
+            string serializedHex = ObjectSerializer.SerializeChunk(c);
+            Directory.CreateDirectory(filePath);
+            filePath = filePath+"/Chunk_" + c.x + "_" + c.y + ".txt";
+            File.WriteAllText(filePath, serializedHex);
+            return filePath;
         }
 
         public Chunk LoadChunk(int x, int y)
         {
             (int X, int Y) = findChunkClusterPosition(x, y);
             ChunkCluster cluster = clusters[X, Y];
-            if (cluster == null)
-            {
-                cluster = CreateChunkCluster(X,Y);
-            }
+            if(cluster == null) cluster = CreateChunkCluster(X, Y);
             int whatChunkX = x - X * 16;
             int whatChunkY = y - Y * 16;
             Chunk chunk = loadedChunks[(whatChunkX, whatChunkY)];
-            if (chunk == null)
-            {
-                chunk = cluster.GenerateChunk(whatChunkX, whatChunkY, true);
-            }
+            if (chunk == null) ;
+            if (chunk == null) chunk = cluster.GenerateChunk(whatChunkX, whatChunkY, true);
+            
             chunk.loaded = true;
             loadedChunks.Add((whatChunkX, whatChunkY), chunk);
             return chunk;

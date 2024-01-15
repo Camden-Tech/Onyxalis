@@ -5,17 +5,20 @@ using Onyxalis.Objects.Math;
 using Onyxalis.Objects.Tiles;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Runtime.Serialization;
 using System.Text;
 using System.Threading.Tasks;
 
 namespace Onyxalis.Objects.Worlds
 {
+    
     public class Chunk
     {
         public Tile[,] tiles = new Tile[64,64];
 
-        public ChunkCluster cluster;
+        public ChunkCluster cluster; // Do not serialize
         public (int x, int y) whatChunkInCluster;
 
         public HashMap<UUID, LivingCreature> nonPlayers;
@@ -23,13 +26,11 @@ namespace Onyxalis.Objects.Worlds
         public bool surfaceChunk;
 
         public int x;
-        public int y;
+         public int y;
 
         public bool loaded;
+        public World world; //Do not serialize
 
-        public World world;
-
-        
         public void GenerateTiles()
         {
             for (int X = 0; X < 64; X++)

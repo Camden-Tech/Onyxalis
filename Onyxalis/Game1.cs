@@ -120,6 +120,7 @@ namespace Onyxalis
                 } else
                 {
                     c.loaded = false;
+                    world.loadedChunks[pos] = c;
                 }
 
 

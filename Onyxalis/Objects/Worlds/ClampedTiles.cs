@@ -10,6 +10,7 @@ namespace Onyxalis.Objects.Worlds
     public class ClampedTiles
     {
         public Tile[,] tiles;
+
         public ClampedTiles()
         {
 

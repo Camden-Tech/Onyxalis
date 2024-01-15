@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 
 namespace Onyxalis.Objects.Worlds
 {
+    [Serializable]
     public class ChunkCluster
     {
         public float[] heightMap = new float[1024];
