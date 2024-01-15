@@ -31,11 +31,6 @@ namespace Onyxalis.Objects.Entities
 
             foreach (Hitbox box in possibleCollide)  // Check collisions
             {
-                
-                foreach (Vector2 vector in box.Vertices)
-                {
-
-                }
                 if (hitbox.CollidesWith(box))
                 {
                     position = oldPos;

@@ -2,6 +2,7 @@
 using Onyxalis.Objects.Math;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.Contracts;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -15,11 +16,22 @@ namespace Onyxalis.Objects.Worlds
         public World world;
         public int x;
         public int y;
+        public int seed;
+        public Random chunkRandom;
+        public ChunkCluster()
+        {
+            GenerateSeed(); 
+            chunkRandom = new Random(seed);
+        }
 
+        public void GenerateSeed()
+        {
+            seed = Environment.TickCount;
+        }
 
         public float[] GenerateHeightMap()
         {
-            float[] perlinNoise = PerlinNoiseGenerator.GeneratePerlinNoise(1024, 4, 2, 0.5f, 3);
+            float[] perlinNoise = PerlinNoiseGenerator.GeneratePerlinNoise(1024, 4, 2, 0.5f, 3, seed);
             for (int i = 0; i < 1024; i++)
             {
                 heightMap[i] = perlinNoise[i]+128;

@@ -2,6 +2,7 @@
 using MiNET.Utils;
 using Onyxalis.Objects.Entities;
 using Onyxalis.Objects.Math;
+using Onyxalis.Objects.Tiles;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -24,6 +25,8 @@ namespace Onyxalis.Objects.Worlds
         public int x;
         public int y;
 
+        public bool loaded;
+
         public World world;
 
         
@@ -36,8 +39,9 @@ namespace Onyxalis.Objects.Worlds
                 {
                     Tile tile = new Tile();
                     tile.x = X + x * 64;
-                    tile.Type = Tile.TileType.DIRT;
+                    tile.Type = (Tile.TileType)cluster.chunkRandom.Next(2)+1;
                     tile.y = Y + y * 64;
+                    tile.rotation = cluster.chunkRandom.Next(4);
                     tiles[X, Y] = tile; 
                 }
             }
