@@ -14,8 +14,11 @@ namespace Onyxalis.Objects.Tiles
         public enum TileType
         {
             GRASS,
+            GRASS2,
             DIRT1,
             DIRT2,
+            DIRT3,
+            DIRT4,
             STONE,
             WOOD
         }

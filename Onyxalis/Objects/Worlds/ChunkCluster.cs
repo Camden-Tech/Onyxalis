@@ -9,11 +9,11 @@ using System.Threading.Tasks;
 
 namespace Onyxalis.Objects.Worlds
 {
-    [Serializable]
     public class ChunkCluster
     {
-        public float[] heightMap = new float[1024];
+        public float[] heightMap = new float[1092]; // 1028 and 16 + 16 for lerping
         public Chunk[,] chunks = new Chunk[16, 16];
+        public Biome[] biomes = new Biome[16];
         public World world;
         public int x;
         public int y;
@@ -27,17 +27,33 @@ namespace Onyxalis.Objects.Worlds
 
         public void GenerateSeed()
         {
-            seed = Environment.TickCount;
+            seed = Environment.TickCount + new Random(x).Next(100) + new Random(y).Next(100);
         }
 
         public float[] GenerateHeightMap()
         {
-            float[] perlinNoise = PerlinNoiseGenerator.GeneratePerlinNoise(1024, 4, 2, 0.5f, 3, seed);
-            for (int i = 0; i < 1024; i++)
+            
+            ChunkCluster mapToLeft = world.clusters[x - 1, y];
+            ChunkCluster mapToRight = world.clusters[x + 1, y];
+            float[] perlinNoise = PerlinNoiseGenerator.GeneratePerlinNoise(1092, 4, 2, 1f, 3, seed);
+            for (int i = 0; i < 1092; i++)
             {
-                heightMap[i] = perlinNoise[i]+128;
+                if (i <= 64 && mapToLeft != null)
+                {
+                    int adjustedI = 64 - i;
+                    heightMap[adjustedI] = ((mapToLeft.heightMap[1091 - i] - perlinNoise[adjustedI]) * i / (128-i)) + perlinNoise[adjustedI];
+                }
+                else if (i > 995 && i <= 1027 && mapToRight != null)
+                {
+                    heightMap[i] = ((mapToRight.heightMap[0] - perlinNoise[i]) * (i - 995) / (64-i)) + perlinNoise[i];
+                }
+                else
+                {
+                    heightMap[i] = perlinNoise[i];
+                }
+
             }
-                
+
             return heightMap;
         }
 

@@ -78,6 +78,10 @@ namespace Onyxalis
             _spriteBatch = new SpriteBatch(GraphicsDevice);
             textureDictionary.Add(Tile.TileType.DIRT1, Content.Load<Texture2D>("Dirt"));
             textureDictionary.Add(Tile.TileType.DIRT2, Content.Load<Texture2D>("DirtTwo"));
+            textureDictionary.Add(Tile.TileType.GRASS, Content.Load<Texture2D>("Grass"));
+            textureDictionary.Add(Tile.TileType.DIRT3, Content.Load<Texture2D>("DirtThree"));
+            textureDictionary.Add(Tile.TileType.GRASS2, Content.Load<Texture2D>("GrassTwo"));
+            textureDictionary.Add(Tile.TileType.DIRT4, Content.Load<Texture2D>("DirtFour"));
             // TODO: use this.Content to load your game content here
         }
 

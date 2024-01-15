@@ -22,6 +22,7 @@ namespace Onyxalis.Objects.Worlds
 {
     public class World
     {
+        public BiomeMaps biomeMaps = new BiomeMaps();
         public string name;
         public ChunkClusters clusters = new ChunkClusters();
         public LoadedTiles tiles;
@@ -39,8 +40,42 @@ namespace Onyxalis.Objects.Worlds
             filePath = Path.Combine(onyxalisDirectory, $"Worlds/" + name);
             tiles = new LoadedTiles(this);
         }
+        public struct BiomeMaps
+        {
+            private BiomeMap[,] biomeMapArray;
+            private const int Offset = 50;
+            public BiomeMaps()
+            {
+                biomeMapArray = new BiomeMap[100, 100];
+            }
 
-        
+            private (int, int) MapToWorldIndices(int x, int y)
+            {
+                return (x + Offset, y + Offset);
+            }
+            public BiomeMap this[int x, int y]
+            {
+                get
+                {
+                    (int arrayX, int arrayY) = MapToWorldIndices(x, y);
+                    if (arrayX < 0 || arrayX >= biomeMapArray.GetLength(0) || arrayY < 0 || arrayY >= biomeMapArray.GetLength(1))
+                    {
+                        throw new IndexOutOfRangeException("Coordinates are out of bounds.");
+                    }
+                    return biomeMapArray[arrayX, arrayY];
+                }
+                set
+                {
+                    (int arrayX, int arrayY) = MapToWorldIndices(x, y);
+                    if (arrayX < 0 || arrayX >= biomeMapArray.GetLength(0) || arrayY < 0 || arrayY >= biomeMapArray.GetLength(1))
+                    {
+                        throw new IndexOutOfRangeException("Coordinates are out of bounds.");
+                    }
+                    biomeMapArray[arrayX, arrayY] = value;
+                }
+            }
+        }
+
         public struct ChunkClusters
         {
             private ChunkCluster[,] chunkArray;
@@ -121,6 +156,10 @@ namespace Onyxalis.Objects.Worlds
         public int seed;
         public Random worldRandom;
 
+
+
+
+
         public static World CreateWorld()
         {
             World world = new();
@@ -198,9 +237,9 @@ namespace Onyxalis.Objects.Worlds
         {
             ChunkCluster cluster = new ChunkCluster();
             cluster.world = this;
-            cluster.GenerateHeightMap();
             cluster.x = x; 
             cluster.y = y;
+            cluster.GenerateHeightMap();
             clusters[x,y] = cluster;
             return cluster;
         }

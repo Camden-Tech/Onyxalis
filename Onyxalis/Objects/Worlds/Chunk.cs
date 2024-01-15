@@ -3,6 +3,7 @@ using MiNET.Utils;
 using Onyxalis.Objects.Entities;
 using Onyxalis.Objects.Math;
 using Onyxalis.Objects.Tiles;
+using Org.BouncyCastle.Bcpg;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -40,12 +41,19 @@ namespace Onyxalis.Objects.Worlds
                 {
                     Tile tile = new Tile();
                     tile.x = X + x * 64;
-                    tile.Type = (Tile.TileType)cluster.chunkRandom.Next(2)+1;
-                    tile.y = Y + y * 64;
                     tile.chunkPos = (X, Y);
-                    tile.rotation = cluster.chunkRandom.Next(4);
-                    tiles[X, Y] = tile; 
-                }
+                    tile.y = Y + y * 64;
+                    if (Y == (int)height) {
+                        tile.Type = (Tile.TileType)cluster.chunkRandom.Next(2);
+                        tile.rotation = 0;
+                    }
+                    else
+                    {
+                        tile.Type = (Tile.TileType)cluster.chunkRandom.Next(4) + 2;
+                        tile.rotation = cluster.chunkRandom.Next(4);
+                    }
+                    tiles[X, Y] = tile;
+                } 
             }
         }
         
