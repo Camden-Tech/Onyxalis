@@ -119,14 +119,14 @@ namespace Onyxalis
             {
                 for (int y = -5; y < 5; y++)
                 {
-                    Chunk c = world.LoadChunk((int)(player.position.X / Tile.tilesize / 64 + x), (int)(player.position.Y / Tile.tilesize / 64) + y);
+                    Chunk c = world.LoadChunk((int)(player.position.X / (Tile.tilesize) / 64 + x), (int)(player.position.Y / (Tile.tilesize) / 64) + y);
                     
                     c.loaded = true;
                 }
             }
 
             List<Hitbox> tileHitboxes = new List<Hitbox>();
-            Tile tile = world.tiles[(int)player.position.X - 32, (int)player.position.Y - 32];
+            Tile tile = world.tiles[(int)(player.position.X) / Tile.tilesize - 2, (int)(player.position.Y) / Tile.tilesize - 2];
             if (tile != null)
             {
                 tileHitboxes.Add(tile.hitbox);
