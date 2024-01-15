@@ -10,6 +10,7 @@ using System.Numerics;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
+using System.Xml.Serialization;
 using static Onyxalis.Objects.Worlds.World;
 
 namespace Onyxalis.Objects.Worlds
@@ -123,6 +124,12 @@ namespace Onyxalis.Objects.Worlds
         }
 
 
+        public void UnloadChunk((int x, int y) pos)
+        {
+            Chunk c = loadedChunks[pos];
+            c.cluster.chunks[c.whatChunkInCluster.x, c.whatChunkInCluster.y] = null;
+            loadedChunks.Remove(pos);
+        }
 
         public Chunk LoadChunk(int x, int y)
         {
@@ -134,11 +141,12 @@ namespace Onyxalis.Objects.Worlds
             }
             int whatChunkX = x - X * 16;
             int whatChunkY = y - Y * 16;
-            Chunk chunk = cluster.chunks[whatChunkX, whatChunkY];
+            Chunk chunk = loadedChunks[(whatChunkX, whatChunkY)];
             if (chunk == null)
             {
                 chunk = cluster.GenerateChunk(whatChunkX, whatChunkY, true);
             }
+            chunk.loaded = true;
             loadedChunks.Add((whatChunkX, whatChunkY), chunk);
             return chunk;
         }

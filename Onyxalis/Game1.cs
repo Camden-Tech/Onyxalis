@@ -102,12 +102,27 @@ namespace Onyxalis
             {
                 player.position.X -= 64;
             }
+            
             for (int x = -5; x < 5; x++)
             {
                 for (int y = -5; y < 5; y++)
                 {
-                    world.LoadChunk((int)(player.position.X / Tile.tilesize / 64 + x), (int)(player.position.Y / Tile.tilesize / 64) + y);
+                    Chunk c = world.LoadChunk((int)(player.position.X / Tile.tilesize / 64 + x), (int)(player.position.Y / Tile.tilesize / 64) + y);
+                    c.loaded = true;
                 }
+            }
+            foreach ((int x, int y) pos in world.loadedChunks.Keys)
+            {
+                Chunk c = world.loadedChunks[pos];
+                if (!c.loaded)
+                {
+                    world.UnloadChunk(pos);
+                } else
+                {
+                    c.loaded = false;
+                }
+
+
             }
             
             base.Update(gameTime);

@@ -50,6 +50,7 @@ namespace Onyxalis.Objects.Worlds
         public static Chunk CreateChunk(int X, int Y, World world, bool GenerateTiles, bool SurfaceChunk, ChunkCluster cluster)
         {
             Chunk newChunk = new Chunk();
+            
             newChunk.cluster = cluster;
             newChunk.whatChunkInCluster.x = X;
             newChunk.whatChunkInCluster.y = Y;

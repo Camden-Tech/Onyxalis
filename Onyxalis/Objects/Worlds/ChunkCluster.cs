@@ -43,6 +43,7 @@ namespace Onyxalis.Objects.Worlds
         public Chunk GenerateChunk(int X, int Y, bool surfaceChunk)
         {
             Chunk newChunk = Chunk.CreateChunk(X, Y, world, true, surfaceChunk, this); //Create CreateChunk() method, the boolean decides whether the chunk generates terrain or not.
+            
             chunks[X, Y] = newChunk;
             return newChunk;
         }
