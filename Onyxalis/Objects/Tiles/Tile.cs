@@ -1,4 +1,7 @@
-﻿using Org.BouncyCastle.Asn1.Cmp;
+﻿using AStarNavigator;
+using Microsoft.Xna.Framework;
+using Onyxalis.Objects.Math;
+using Org.BouncyCastle.Asn1.Cmp;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -22,8 +25,12 @@ namespace Onyxalis.Objects.Tiles
             STONE,
             WOOD
         }
-
+        public Tile()
+        {
+            hitbox = new Hitbox(new Vector2[] { new Vector2(0, 0), new Vector2(Tile.tilesize * 2, 0), new Vector2(Tile.tilesize * 2, Tile.tilesize * 2), new Vector2(0, Tile.tilesize * 2) }, Vector2.Zero);
+        }
         //Each tile is 8x8
+        public Hitbox hitbox;
         public int x;
         public int y;
         public (int chunkX, int chunkY) chunkPos;

@@ -19,6 +19,7 @@ namespace Onyxalis.Objects.Worlds
         public int y;
         public int seed;
         public Random chunkRandom;
+
         public ChunkCluster()
         {
             GenerateSeed(); 
@@ -27,7 +28,7 @@ namespace Onyxalis.Objects.Worlds
 
         public void GenerateSeed()
         {
-            seed = Environment.TickCount + new Random(x).Next(100) + new Random(y).Next(100);
+            seed = Environment.TickCount + new Random(x).Next(10000) + new Random(y).Next(10000);
         }
 
         public float[] GenerateHeightMap()

@@ -15,7 +15,6 @@ namespace Onyxalis.Objects.Worlds
             Stormy,
             Hail,
             Tornado
-        
         }
 
         public int globalTemperature;

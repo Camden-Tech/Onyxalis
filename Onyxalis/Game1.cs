@@ -9,6 +9,8 @@ using System.Collections.Generic;
 using MiNET.Blocks;
 using System.Diagnostics;
 using Onyxalis.Objects.Tiles;
+using Lucene.Net.Support;
+using Onyxalis.Objects.Math;
 
 namespace Onyxalis
 {
@@ -18,10 +20,12 @@ namespace Onyxalis
         private SpriteBatch _spriteBatch;
         public static Random GameRandom = new Random();
         public static World world;
+        public float time = 0;
         Player player = new Player();
         Objects.UI.Camera camera = new Objects.UI.Camera();
         GameState state = GameState.Menu;
-        public Dictionary<Tile.TileType, Texture2D> textureDictionary = new Dictionary<Tile.TileType, Texture2D>();
+        public Dictionary<Tile.TileType, Texture2D> tileTextureDictionary = new Dictionary<Tile.TileType, Texture2D>();
+        public Dictionary<Player.PlayerTextures, Texture2D> playerTextureDictionary = new Dictionary<Player.PlayerTextures, Texture2D>();
 
         public enum GameState
         {
@@ -39,7 +43,7 @@ namespace Onyxalis
             _graphics.PreferredBackBufferWidth = 1920;
             _graphics.PreferredBackBufferHeight = 1080;
             _graphics.ApplyChanges();
-            
+
         }
 
         public bool BeginGameCreation()
@@ -53,7 +57,7 @@ namespace Onyxalis
                 player.position = spawnLoc;
                 Debug.WriteLine("asd ");
                 state = GameState.Game;
-                 
+
             }
             catch (Exception e)
             {
@@ -72,39 +76,43 @@ namespace Onyxalis
             BeginGameCreation();
             base.Initialize();
         }
-        
+
         protected override void LoadContent()
         {
             _spriteBatch = new SpriteBatch(GraphicsDevice);
-            textureDictionary.Add(Tile.TileType.DIRT1, Content.Load<Texture2D>("Dirt"));
-            textureDictionary.Add(Tile.TileType.DIRT2, Content.Load<Texture2D>("DirtTwo"));
-            textureDictionary.Add(Tile.TileType.GRASS, Content.Load<Texture2D>("Grass"));
-            textureDictionary.Add(Tile.TileType.DIRT3, Content.Load<Texture2D>("DirtThree"));
-            textureDictionary.Add(Tile.TileType.GRASS2, Content.Load<Texture2D>("GrassTwo"));
-            textureDictionary.Add(Tile.TileType.DIRT4, Content.Load<Texture2D>("DirtFour"));
+            tileTextureDictionary.Add(Tile.TileType.DIRT1, Content.Load<Texture2D>("Dirt"));
+            tileTextureDictionary.Add(Tile.TileType.DIRT2, Content.Load<Texture2D>("DirtTwo"));
+            tileTextureDictionary.Add(Tile.TileType.GRASS, Content.Load<Texture2D>("Grass"));
+            tileTextureDictionary.Add(Tile.TileType.DIRT3, Content.Load<Texture2D>("DirtThree"));
+            tileTextureDictionary.Add(Tile.TileType.GRASS2, Content.Load<Texture2D>("GrassTwo"));
+            playerTextureDictionary.Add(Player.PlayerTextures.Body, Content.Load<Texture2D>("BeautifulPlayerCharacter"));
+            tileTextureDictionary.Add(Tile.TileType.DIRT4, Content.Load<Texture2D>("DirtFour"));
             // TODO: use this.Content to load your game content here
+            Texture2D texture = playerTextureDictionary[Player.PlayerTextures.Body];
+            player.hitbox = new Hitbox(new Vector2[] { new Vector2(0,0), new Vector2(texture.Width, 0), new Vector2(texture.Width, texture.Height), new Vector2(0, texture.Height)}, player.position);
         }
 
         protected override void Update(GameTime gameTime)
         {
+            
             if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || Keyboard.GetState().IsKeyDown(Keys.Escape))
                 Exit();
             camera.position = player.position;
             if (Keyboard.GetState().IsKeyDown(Keys.W))
             {
-                player.position.Y += 64;
+                player.Velocity.Y = 500;
             }
             if (Keyboard.GetState().IsKeyDown(Keys.S))
             {
-                player.position.Y -= 64;
+                player.Velocity.Y = -500;
             }
             if (Keyboard.GetState().IsKeyDown(Keys.D))
             {
-                player.position.X += 64;
+                player.Velocity.X = 500;
             }
             if (Keyboard.GetState().IsKeyDown(Keys.A))
             {
-                player.position.X -= 64;
+                player.Velocity.X = -500;
             }
             
             for (int x = -5; x < 5; x++)
@@ -112,9 +120,19 @@ namespace Onyxalis
                 for (int y = -5; y < 5; y++)
                 {
                     Chunk c = world.LoadChunk((int)(player.position.X / Tile.tilesize / 64 + x), (int)(player.position.Y / Tile.tilesize / 64) + y);
+                    
                     c.loaded = true;
                 }
             }
+
+            List<Hitbox> tileHitboxes = new List<Hitbox>();
+            Tile tile = world.tiles[(int)player.position.X - 32, (int)player.position.Y - 32];
+            if (tile != null)
+            {
+                tileHitboxes.Add(tile.hitbox);
+            }
+            
+            player.Process_((float)gameTime.ElapsedGameTime.TotalSeconds, tileHitboxes.ToArray());
             foreach ((int x, int y) pos in world.loadedChunks.Keys)
             {
                 Chunk c = world.loadedChunks[pos];
@@ -129,9 +147,51 @@ namespace Onyxalis
 
 
             }
-            
+
             base.Update(gameTime);
         }
+
+        public void drawTiles()
+        {
+            foreach (Chunk chunk in world.loadedChunks.Values)
+            {
+                for (int X = 0; X < 64; X++)
+                {
+                    for (int Y = 0; Y < 64; Y++)
+                    {
+                        Tile tile = chunk.tiles[X, Y];
+                        if (tile != null)
+                        {
+                            Vector2 pos = new Vector2(tile.x * Tile.tilesize - camera.position.X, tile.y * -Tile.tilesize + camera.position.Y);
+                            if (pos.X > -Tile.tilesize && pos.X < 1980 + Tile.tilesize && pos.Y > -Tile.tilesize && pos.Y < 1080 + Tile.tilesize)
+                            {
+                                Texture2D tileTexture = tileTextureDictionary.GetValueOrDefault(tile.Type);
+                                Vector2 origin = new Vector2(tileTexture.Width / 2f, tileTexture.Height / 2f);
+
+                                _spriteBatch.Draw(tileTexture, pos, null, Color.White, MathHelper.ToRadians(90 * tile.rotation), origin, 2, SpriteEffects.None, 0);
+
+
+                            }
+                            if (Keyboard.GetState().IsKeyDown(Keys.F))
+                            {
+                                player.position.X = tile.x * Tile.tilesize;
+                                player.position.Y = tile.y * Tile.tilesize;
+                            }
+                        }
+
+                    }
+                }
+
+            }
+        }
+        public void drawPlayer()
+        {
+            Texture2D texture = playerTextureDictionary[Player.PlayerTextures.Body];
+            _spriteBatch.Draw(texture, new Vector2(1920 - texture.Width / 2, 1080 - texture.Height / 2) / 2, null, Color.White, 0, new Vector2(), 2, SpriteEffects.None, 0);
+        }
+
+
+
 
 
         protected override void Draw(GameTime gameTime)
@@ -149,36 +209,8 @@ namespace Onyxalis
                     break;
 
                 case GameState.Game:
-                    foreach (Chunk chunk in world.loadedChunks.Values)
-                    {
-                        for (int X = 0; X < 64; X++)
-                        {
-                            for (int Y = 0; Y < 64; Y++)
-                            {
-                                Tile tile = chunk.tiles[X, Y];
-                                if (tile != null)
-                                {
-                                    Vector2 pos = new Vector2(tile.x * Tile.tilesize - camera.position.X, tile.y * -Tile.tilesize + camera.position.Y);
-                                    if (pos.X > -Tile.tilesize && pos.X < 1980 + Tile.tilesize && pos.Y > -Tile.tilesize && pos.Y < 1080 + Tile.tilesize)
-                                    {
-                                        Texture2D tileTexture = textureDictionary.GetValueOrDefault(tile.Type);
-                                        Vector2 origin = new Vector2(tileTexture.Width / 2f, tileTexture.Height / 2f);
-
-                                        _spriteBatch.Draw(tileTexture, pos, null, Color.White, MathHelper.ToRadians(90 * tile.rotation), origin, 2, SpriteEffects.None, 0);
-
-                                        
-                                    }
-                                    if (Keyboard.GetState().IsKeyDown(Keys.F))
-                                    {
-                                        player.position.X = tile.x * Tile.tilesize;
-                                        player.position.Y = tile.y * Tile.tilesize;
-                                    }
-                                }
-                                
-                            }
-                        }
-                        
-                    }
+                    drawTiles();
+                    drawPlayer();
                     
                     break;
             }

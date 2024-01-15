@@ -25,10 +25,18 @@ namespace Onyxalis.Objects.Entities
             hunger = 0;
             hungerCap = 0;
             // rectangular hitbox
-            hitbox = new Hitbox(new Vector2[] {new Vector2(0, 0), new Vector2(32, 0), new Vector2(0, 64), new Vector2(32, 64)}, position);
+            
             // Top left, top right, bottom left, bottom right
         }
         
+        public enum PlayerTextures
+        {
+            Body
+        }
+
+
+
+
         //Inventory inventory
 
         //Hotbar hotbar
@@ -62,5 +70,6 @@ namespace Onyxalis.Objects.Entities
         public int hunger;
 
         public int hungerCap;
+
     }
 }

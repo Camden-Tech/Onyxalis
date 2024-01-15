@@ -20,6 +20,7 @@ namespace Onyxalis.Objects.Math
         {
             Position = position;
             Vertices = vertices;
+            Rotation = 0;
             for (int i = 0; i < Vertices.Length; i++)
             {
                 Vector2 Vertice = Vertices[i];
@@ -85,7 +86,7 @@ namespace Onyxalis.Objects.Math
             {
                 return false;
             }
-        }
+       }
 
         private Vector2[] GetWorldSpaceVertices()
         {

@@ -8,6 +8,7 @@ using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 using Onyxalis.Objects.Math;
+using System.Threading;
 
 namespace Onyxalis.Objects.Entities
 {
@@ -23,28 +24,37 @@ namespace Onyxalis.Objects.Entities
         {
             Velocity += Acceleration;  // Move fast as hell boi
 
-            deltaX = (Velocity.X * delta) + (Acceleration.X / 2 * (MathF.Pow(delta,2)));  // Get the change in X & Y using the 3rd kinematic equation
+            deltaX = (Velocity.X * delta) + (Acceleration.X / 2 * (MathF.Pow(delta, 2)));  // Get the change in X & Y using the 3rd kinematic equation
             deltaY = (Velocity.Y * delta) + (Acceleration.Y / 2 * (MathF.Pow(delta, 2))); // https://www.khanacademy.org/science/physics/one-dimensional-motion/kinematic-formulas/a/what-are-the-kinematic-formulas?modal=1&referrer=upsell
             oldPos = position;
             position.X += deltaX;  // boilerplate
             position.Y += deltaY;  // please give me an internship Camden's dad
+            hitbox.Update(position, 0);
 
             foreach (Hitbox box in possibleCollide)  // Check collisions
             {
                 if (hitbox.CollidesWith(box))
                 {
+                    hitbox.Update(oldPos, 0);
                     position = oldPos;
                     Velocity = Vector2.Zero;
                     Acceleration = Vector2.Zero;
+                    return oldPos;
                 }
+                
             }
             return position;
         }
-        float deltaX, deltaY;  // change in x and y
+        public float deltaX, deltaY;  // change in x and y
 
         private float currentDistance;
 
-        public Vector2 position, oldPos;
+
+
+
+        public Vector2 position;
+        public Vector2 oldPos;
+
 
         public static HashMap<UUID, LivingCreature> creatures;
 
