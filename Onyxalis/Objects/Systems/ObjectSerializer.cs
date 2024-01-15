@@ -99,6 +99,7 @@ namespace Onyxalis.Objects.Systems
                                 Type = (Tile.TileType)int.Parse(parts[3]),
                                 chunkPos = (int.Parse(parts[4]), int.Parse(parts[5]))
                             };
+                            tile.hitbox.Position = new Microsoft.Xna.Framework.Vector2(tile.x * Tile.tilesize, tile.y * Tile.tilesize);
                             chunk.tiles[i, j] = tile;
                         }
                     }

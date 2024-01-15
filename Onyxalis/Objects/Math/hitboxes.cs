@@ -17,6 +17,7 @@ namespace Onyxalis.Objects.Math
         public Vector2[] Vertices { get; set; }
 
         private float distanceFromFarthestVertice = 0;
+        public Vector2 farthestVertice;
 
         public Vector2 oldPos { get; set; }
         public Hitbox(Vector2[] vertices, Vector2 position, float scale)
@@ -35,6 +36,7 @@ namespace Onyxalis.Objects.Math
                 float Distance = MathF.Sqrt(MathF.Pow(Vertice.X, 2) + MathF.Pow(Vertice.Y, 2));
                 if (Distance > distanceFromFarthestVertice)
                 {
+                    farthestVertice = vertices[i];
                     distanceFromFarthestVertice = Distance;
                 }
             }

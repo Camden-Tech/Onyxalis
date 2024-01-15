@@ -133,8 +133,8 @@ namespace Onyxalis.Objects.Entities
         {
             List<Hitbox> hitboxes = new List<Hitbox>();
             (int X, int Y) pos = World.findTilePosition(position.X, position.Y);
-            float textureSizeX = (hitbox.Vertices[2].X / Tile.tilesize) + 1;
-            float textureSizeY = (hitbox.Vertices[2].Y / Tile.tilesize);
+            float textureSizeX = (hitbox.farthestVertice.X / Tile.tilesize) + 1;
+            float textureSizeY = (hitbox.farthestVertice.Y / Tile.tilesize);
             for (int X = 0; X < textureSizeX; X++)
             {
                 for (int Y = 0; Y < -textureSizeY; Y++)
