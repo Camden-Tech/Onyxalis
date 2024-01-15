@@ -17,7 +17,7 @@ namespace Onyxalis
         private GraphicsDeviceManager _graphics;
         private SpriteBatch _spriteBatch;
         public static Random GameRandom = new Random();
-        World world;
+        public static World world;
         Player player = new Player();
         Objects.UI.Camera camera = new Objects.UI.Camera();
         GameState state = GameState.Menu;

@@ -42,6 +42,7 @@ namespace Onyxalis.Objects.Worlds
                     tile.x = X + x * 64;
                     tile.Type = (Tile.TileType)cluster.chunkRandom.Next(2)+1;
                     tile.y = Y + y * 64;
+                    tile.chunkPos = (X, Y);
                     tile.rotation = cluster.chunkRandom.Next(4);
                     tiles[X, Y] = tile; 
                 }

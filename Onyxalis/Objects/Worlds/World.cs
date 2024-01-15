@@ -26,10 +26,17 @@ namespace Onyxalis.Objects.Worlds
         public ChunkClusters clusters = new ChunkClusters();
         public LoadedTiles tiles;
         Guid uuid;
+        string currentDirectory;
+        string onyxalisDirectory;
+        string filePath;
         public World()
         {
+
             uuid = Guid.NewGuid();
             name = uuid.ToString();
+            currentDirectory = AppDomain.CurrentDomain.BaseDirectory;
+            onyxalisDirectory = Path.GetFullPath(Path.Combine(currentDirectory, @"..\..\..\..\"));
+            filePath = Path.Combine(onyxalisDirectory, $"Worlds/" + name);
             tiles = new LoadedTiles(this);
         }
 
@@ -141,24 +148,35 @@ namespace Onyxalis.Objects.Worlds
             loadedChunks.Remove(pos);
         }
 
+        public string GenerateChunkFilepath((int x, int y) c)
+        {
+            return filePath + "/Chunk_" + c.x + "_" + c.y + ".txt";
+        }
+
         public string writeChunkFile(Chunk c)
         {
-            string currentDirectory = AppDomain.CurrentDomain.BaseDirectory;
-
-            // Navigate up three directories to reach Onxyalis
-            string onyxalisDirectory = Path.GetFullPath(Path.Combine(currentDirectory, @"..\..\..\..\"));
-
-            // Construct the new file path
-            string filePath = Path.Combine(onyxalisDirectory, $"Worlds/" + name);
-
 
 
             // Navigate up one directory
             string serializedHex = ObjectSerializer.SerializeChunk(c);
             Directory.CreateDirectory(filePath);
-            filePath = filePath+"/Chunk_" + c.x + "_" + c.y + ".txt";
-            File.WriteAllText(filePath, serializedHex);
-            return filePath;
+            string path = GenerateChunkFilepath((c.x, c.y));
+            File.WriteAllText(path, serializedHex);
+            return path;
+        }
+
+
+        public static Chunk retrieveChunk(string filePath)
+        {
+            // Read the Base64 encoded, compressed data from the file
+            if (File.Exists(filePath))
+            {
+                string base64SerializedData = File.ReadAllText(filePath);
+
+                // Use the existing DeserializeChunk method to convert the data back to a Chunk object
+                return ObjectSerializer.DeserializeChunk(base64SerializedData);
+            }
+            return null;
         }
 
         public Chunk LoadChunk(int x, int y)
@@ -169,7 +187,7 @@ namespace Onyxalis.Objects.Worlds
             int whatChunkX = x - X * 16;
             int whatChunkY = y - Y * 16;
             Chunk chunk = loadedChunks[(whatChunkX, whatChunkY)];
-            if (chunk == null) ;
+            if (chunk == null) chunk = retrieveChunk(GenerateChunkFilepath((x,y)));
             if (chunk == null) chunk = cluster.GenerateChunk(whatChunkX, whatChunkY, true);
             
             chunk.loaded = true;
