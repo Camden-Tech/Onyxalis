@@ -52,7 +52,7 @@ namespace Onyxalis.Objects.Worlds
                         tile.Type = (Tile.TileType)cluster.chunkRandom.Next(4) + 2;
                         tile.rotation = cluster.chunkRandom.Next(4);
                     }
-                    tile.hitbox.Position = new Microsoft.Xna.Framework.Vector2(tile.x * 32, tile.y * 32);
+                    tile.hitbox.Position = new Microsoft.Xna.Framework.Vector2(tile.x * Tile.tilesize, tile.y * Tile.tilesize);
                     tiles[X, Y] = tile;
                 } 
             }
@@ -69,6 +69,7 @@ namespace Onyxalis.Objects.Worlds
             newChunk.y = Y + cluster.y * 16;
             int seed = world.seed;
             newChunk.surfaceChunk = SurfaceChunk;
+            newChunk.world = world;
             if(GenerateTiles) newChunk.GenerateTiles();
             return newChunk;
         }

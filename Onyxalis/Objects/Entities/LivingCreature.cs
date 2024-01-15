@@ -37,10 +37,11 @@ namespace Onyxalis.Objects.Entities
             {
                 if (hitbox.CollidesWith(box))
                 {
-                    hitbox.Update(oldPos, 0);
-                    position = oldPos;
-                    Velocity = Vector2.Zero;
-                    Acceleration = Vector2.Zero;
+                    //hitbox.Update(oldPos, 0);
+                    //position = oldPos;
+                    //Velocity = Vector2.Zero;
+                    //Acceleration = Vector2.Zero;
+                    /*
                     // Step 1: Get the closest vertex on the this object to draw a line from later
                     float lastDistance = -1;
                     Vector2 closestVertex = Vector2.Zero;
@@ -78,8 +79,8 @@ namespace Onyxalis.Objects.Entities
                     /* Step 2: Get the intercept between a line of the two points in 1.1 and 
                        the point in step 1 and the center of the colliding object
                     */
+                    /*
 
-                    
                     // Get the points 
                     // Points from closest point to colliding object and the center of the colliding object
                     CalculateIntersection.Point thisLinePointOne = new CalculateIntersection.Point(closestVertex.X, closestVertex.Y);
@@ -113,8 +114,9 @@ namespace Onyxalis.Objects.Entities
 
                     position.X += moveDistanceX;
                     position.Y += moveDistanceY;
+                     */
                 }
-                
+
             }
             return position;
         }

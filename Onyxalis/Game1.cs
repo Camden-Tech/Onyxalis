@@ -54,7 +54,8 @@ namespace Onyxalis
                 world = World.CreateWorld();
                 Vector2 spawnLoc = world.GenerateSpawnLocation();
                 spawnLoc.Y *= -1;
-                player.position = spawnLoc;
+                //player.position = spawnLoc;
+                player.position = new Vector2(500,500);
                 Debug.WriteLine("asd ");
                 state = GameState.Game;
 
@@ -97,40 +98,52 @@ namespace Onyxalis
             
             if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || Keyboard.GetState().IsKeyDown(Keys.Escape))
                 Exit();
-            camera.position = player.position;
+            camera.position = player.position - new Vector2(1920 / 2, -1080 / 2);
+            player.Acceleration = Vector2.Zero;
             if (Keyboard.GetState().IsKeyDown(Keys.W))
             {
-                player.Velocity.Y = 500;
+                player.Acceleration.Y = 15;
             }
             if (Keyboard.GetState().IsKeyDown(Keys.S))
             {
-                player.Velocity.Y = -500;
+                player.Acceleration.Y = -15;
             }
             if (Keyboard.GetState().IsKeyDown(Keys.D))
             {
-                player.Velocity.X = 500;
+                player.Acceleration.X = 15;
             }
             if (Keyboard.GetState().IsKeyDown(Keys.A))
             {
-                player.Velocity.X = -500;
+                player.Acceleration.X = -15;
             }
             
             for (int x = -5; x < 5; x++)
             {
                 for (int y = -5; y < 5; y++)
                 {
+                    if ((int)(player.position.X / (Tile.tilesize) / 64 + x) < -500 || (int)(player.position.Y / (Tile.tilesize) / 64) < -500)
+                    {
+                        //asda
+                    }
                     Chunk c = world.LoadChunk((int)(player.position.X / (Tile.tilesize) / 64 + x), (int)(player.position.Y / (Tile.tilesize) / 64) + y);
-                    
+
                     c.loaded = true;
                 }
             }
 
             List<Hitbox> tileHitboxes = new List<Hitbox>();
-            Tile tile = world.tiles[(int)(player.position.X) / Tile.tilesize - 2, (int)(player.position.Y) / Tile.tilesize - 2];
+            (int X, int Y) = World.findTilePosition(player.position.X, player.position.Y);
+            Tile tile = world.tiles[X, Y];
             if (tile != null)
             {
                 tileHitboxes.Add(tile.hitbox);
             }
+            tile = new Tile();
+            tile.x = X;
+            tile.y = Y;
+            tile.Type = Tile.TileType.GRASS;
+            world.tiles[X, Y] = tile;
+            
             
             player.Process_((float)gameTime.ElapsedGameTime.TotalSeconds, tileHitboxes.ToArray());
             foreach ((int x, int y) pos in world.loadedChunks.Keys)
@@ -144,8 +157,6 @@ namespace Onyxalis
                     c.loaded = false;
                     world.loadedChunks[pos] = c;
                 }
-
-
             }
 
             base.Update(gameTime);
@@ -186,6 +197,7 @@ namespace Onyxalis
         }
         public void drawPlayer()
         {
+
             Texture2D texture = playerTextureDictionary[Player.PlayerTextures.Body];
             _spriteBatch.Draw(texture, new Vector2(1920 - texture.Width / 2, 1080 - texture.Height / 2) / 2, null, Color.White, 0, new Vector2(), 2, SpriteEffects.None, 0);
         }

@@ -25,6 +25,7 @@ namespace Onyxalis.Objects.Worlds
         public BiomeMaps biomeMaps = new BiomeMaps();
         public string name;
         public ChunkClusters clusters = new ChunkClusters();
+
         public LoadedTiles tiles;
         Guid uuid;
         string currentDirectory;
@@ -167,6 +168,12 @@ namespace Onyxalis.Objects.Worlds
             return world;
         }
 
+
+        public static (int x, int y) findTilePosition(float X, float Y)
+        {
+            return ((int)MathF.Round((X - (Tile.tilesize / 2 - 0.5f)) / Tile.tilesize), (int)MathF.Round((Y - (Tile.tilesize / 2 - 0.5f)) / Tile.tilesize));
+        }
+
         public static (int x, int y) findChunkClusterPosition(int X, int Y)
         {
             
@@ -221,16 +228,17 @@ namespace Onyxalis.Objects.Worlds
         public Chunk LoadChunk(int x, int y)
         {
             (int X, int Y) = findChunkClusterPosition(x, y);
+
             ChunkCluster cluster = clusters[X, Y];
             if(cluster == null) cluster = CreateChunkCluster(X, Y);
             int whatChunkX = x - X * 16;
             int whatChunkY = y - Y * 16;
-            Chunk chunk = loadedChunks[(whatChunkX, whatChunkY)];
+            Chunk chunk = loadedChunks[(x, y)];
             if (chunk == null) chunk = retrieveChunk(GenerateChunkFilepath((x,y)));
             if (chunk == null) chunk = cluster.GenerateChunk(whatChunkX, whatChunkY, true);
             
             chunk.loaded = true;
-            loadedChunks.Add((whatChunkX, whatChunkY), chunk);
+            loadedChunks.Add((x, y), chunk);
             return chunk;
         }
         public ChunkCluster CreateChunkCluster(int x, int y)
