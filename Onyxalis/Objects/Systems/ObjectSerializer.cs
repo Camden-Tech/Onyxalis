@@ -21,7 +21,6 @@ namespace Onyxalis.Objects.Systems
             StringBuilder sb = new StringBuilder();
 
             // Serialize primitive types
-            sb.AppendLine(chunk.surfaceChunk.ToString());
             sb.AppendLine(chunk.x.ToString());
             sb.AppendLine(chunk.y.ToString());
 
@@ -77,11 +76,10 @@ namespace Onyxalis.Objects.Systems
                 Chunk chunk = new Chunk();
 
                 // Deserialize primitive types
-                chunk.surfaceChunk = bool.Parse(lines[lineIndex++]);
                 chunk.x = int.Parse(lines[lineIndex++]);
                 chunk.y = int.Parse(lines[lineIndex++]);
                 chunk.world = Game1.world;
-                chunk.biome = chunk.world.getBiome(chunk.x,chunk.y);
+                chunk.horizontalBiome = chunk.world.getHorizontalBiome(chunk.x);
                 // Deserialize complex types (like the tiles array)
                 for (int i = 0; i < 64; i++)
                 {

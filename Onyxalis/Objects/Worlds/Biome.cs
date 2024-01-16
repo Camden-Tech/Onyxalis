@@ -53,9 +53,6 @@ namespace Onyxalis.Objects.Worlds
             
         }
 
-
-
-
         public Biome(BiomeType type, float temp, float amp) 
         {
             this.type = type;

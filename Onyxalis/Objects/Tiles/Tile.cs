@@ -16,23 +16,23 @@ namespace Onyxalis.Objects.Tiles
         public const int tilesize = 16;
         public enum TileType
         {
-            GRASS,
-            GRASS2,
-            DIRT1,
-            DIRT2,
-            DIRT3,
-            DIRT4,
-            STONE,
-            DEEPROCK,
-            DEEPROCK2,
-            PERMAFROST,
-            SAND,
-            SHRUB,
-            SHORTGRASS,
-            TALLGRASS,
-            SNOW,
-            COPPERDEEPROCK,
-            WOOD
+            GRASS = 0,
+            GRASS2 = 1,
+            DIRT1 = 2,
+            DIRT2 = 3,
+            DIRT3 = 4,
+            DIRT4 = 5,
+            STONE = 6,
+            DEEPROCK = 7,
+            DEEPROCK2 = 8,
+            PERMAFROST = 9,
+            SAND = 10,
+            SHRUB = 11,
+            SHORTGRASS = 12,
+            TALLGRASS = 13,
+            SNOW = 14,
+            COPPERDEEPROCK = 15,
+            WOOD = 16
         }
         public Tile()
         {

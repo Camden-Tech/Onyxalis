@@ -159,7 +159,7 @@ namespace Onyxalis.Objects.Worlds
         }
 
 
-        public Biome getBiome(int x, int y)
+        public Biome getHorizontalBiome(int x)
         {
             float biomeTypeNoise = PerlinNoiseGenerator.GeneratePerlinNoise(4, 0.25f, 1f, 1, seed, x);
             float temperature = PerlinNoiseGenerator.GeneratePerlinNoise(4, 0.25f, 1f, 1, seed, x) * 140 - 40;

@@ -217,7 +217,6 @@ namespace Onyxalis
                 case GameState.Game:
                     drawTiles();
                     drawPlayer();
-                    
                     break;
             }
 
