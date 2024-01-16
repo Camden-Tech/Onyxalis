@@ -8,32 +8,53 @@ namespace Onyxalis.Objects.Worlds
 {
     public class Biome
     {
-        public static BiomeType GetTerrainType(float value)
+        public static HorizontalBiomeType GetHorizontalTerrainType(float value)
         {
             if (value <= 0.1)
             {
-                return BiomeType.Ocean;
+                return HorizontalBiomeType.Ocean;
             }
             else if (value < 0.3)
             {
-                return BiomeType.Forest;
+                return HorizontalBiomeType.Forest;
             }
             else if (value < 0.4)
             {
-                return BiomeType.Plains;
+                return HorizontalBiomeType.Plains;
             }
             else if (value >= 0.6)
             {
-                return BiomeType.Mountains;
+                return HorizontalBiomeType.Mountains;
             }
             // ... add other conditions here
 
-            return BiomeType.Plains; 
+            return HorizontalBiomeType.Plains; 
+        }
+        public static BiomeType GetTerrainType(float value)
+        {
+            if (value <= 0.2)
+            {
+                return BiomeType.Scary;
+            }
+            else if (value < 0.9)
+            {
+                return BiomeType.Basic;
+            }
+            else if (value >= 0.9)
+            {
+                return BiomeType.Riches;
+            }
+            
+            
+            // ... add other conditions here
+
+            return BiomeType.Basic;
         }
 
         public float temperature;
         public float amplitude;
         public BiomeType type;
+        public HorizontalBiomeType horizontalType;
 
         public static Dictionary<int, (float amp, float frequency)> biomeStats = new Dictionary<int, (float amp, float frequency)>()
         {
@@ -43,8 +64,18 @@ namespace Onyxalis.Objects.Worlds
             {3, (300, 1)}, // no frequency greater than 1
         };
         
-
         public enum BiomeType
+        {
+            Scary,
+            Riches,
+            Basic
+
+        }
+
+
+
+
+        public enum HorizontalBiomeType
         {
             Ocean = 0,
             Forest = 1,
@@ -53,9 +84,10 @@ namespace Onyxalis.Objects.Worlds
             
         }
 
-        public Biome(BiomeType type, float temp, float amp) 
+        public Biome(BiomeType type, HorizontalBiomeType horizontalType, float temp, float amp) 
         {
             this.type = type;
+            this.horizontalType = horizontalType;
             temperature = temp;
             amplitude = amp; 
             

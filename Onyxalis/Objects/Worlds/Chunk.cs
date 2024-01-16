@@ -31,7 +31,7 @@ namespace Onyxalis.Objects.Worlds
         public int x;
         public int y;
 
-        public Biome horizontalBiome;
+        public Biome biome;
 
         public bool loaded;
         public World world; //Do not serialize
@@ -46,8 +46,9 @@ namespace Onyxalis.Objects.Worlds
             for (int i = 0; i < 64; i++)
             {
                 float dif = map[i + 1] - map[i];
-                (float amp, float freq) = Biome.biomeStats[(int)horizontalBiome.type];
-                heightMap[i] = map[i] + dif * horizontalBiome.amplitude * amp;
+                (float amp, float freq) = Biome.biomeStats[(int)biome.type];
+                map[i + 1] = map[i] + dif * biome.amplitude * amp;
+                heightMap[i] = map[i + 1];
             }
             for (int i = 0; i < 64; i++)
             {
@@ -67,8 +68,8 @@ namespace Onyxalis.Objects.Worlds
                     tile.x = X + x * 64;
                     tile.chunkPos = (X, Y);
                     tile.y = Y + y * 64;
-                    bool freezing = horizontalBiome.temperature < 0;
-                    bool hot = horizontalBiome.temperature > 80;
+                    bool freezing = biome.temperature < 0;
+                    bool hot = biome.temperature > 80;
                     bool matchesHeight = Y == (int)height;
                     bool rightAboveHeight = Y + 1 == (int)height;
                     if (height <= 32)
@@ -114,11 +115,17 @@ namespace Onyxalis.Objects.Worlds
                         if (Y < (int)height - 160) //If tile is 160 tiles down from farthest tile up
                         {
                             tile.Type = (Tile.TileType)(7+world.worldRandom.Next(2)); //Generate deeprock
-                            tile.rotation = world.worldRandom.Next(4);
+                            tile.rotation = 0;
                         } else
                         {
-                            tile.Type = Tile.TileType.STONE; //Generate stone
-                            tile.rotation = world.worldRandom.Next(4);
+                            if (freezing) {
+                                tile.Type = Tile.TileType.PERMAFROST; //Generate stone
+                                tile.rotation = world.worldRandom.Next(4);
+                            } else
+                            {
+                                tile.Type = Tile.TileType.STONE; //Generate stone
+                                tile.rotation = world.worldRandom.Next(4);
+                            }
                         }
                             
 
@@ -167,7 +174,7 @@ namespace Onyxalis.Objects.Worlds
         {
             Chunk newChunk = new Chunk();
 
-            newChunk.horizontalBiome = world.getHorizontalBiome(X);
+            newChunk.biome = world.getBiome(X, Y);
             newChunk.GenerateHeightMap();
             newChunk.x = X;
             newChunk.y = Y;

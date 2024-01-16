@@ -159,29 +159,42 @@ namespace Onyxalis.Objects.Worlds
         }
 
 
-        public Biome getHorizontalBiome(int x)
+        public Biome getBiome(int x, int y)
         {
-            float biomeTypeNoise = PerlinNoiseGenerator.GeneratePerlinNoise(4, 0.25f, 1f, 1, seed, x);
-            float temperature = PerlinNoiseGenerator.GeneratePerlinNoise(4, 0.25f, 1f, 1, seed, x) * 140 - 40;
-            float amplitude = PerlinNoiseGenerator.GeneratePerlinNoise(4, 0.25f, 1f, 1, seed, x) * 2 + 1;
+            float verticalBiomeTypeNoise = (PerlinNoiseGenerator.Generate2DPerlinNoise(x, y, 4, 0.25f, 1f, 1, seed) / 1.33203125f);
+            float biomeTypeNoise = (PerlinNoiseGenerator.GeneratePerlinNoise(4, 0.25f, 1f, 1, seed, x) / 1.33203125f);
+            float temperature = (PerlinNoiseGenerator.GeneratePerlinNoise(4, 0.25f, 1f, 1, seed, x) / 1.33203125f) * 140 - 40;
+            float amplitude = (PerlinNoiseGenerator.GeneratePerlinNoise(4, 0.25f, 1f, 1, seed, x) / 1.33203125f) * 2 + 1;
+            
 
-            Biome biome = new Biome(Biome.GetTerrainType(biomeTypeNoise), temperature, amplitude);
+
+            Biome biome = new Biome(Biome.GetTerrainType(biomeTypeNoise), Biome.GetHorizontalTerrainType(verticalBiomeTypeNoise), temperature, amplitude);
             return biome;
         }
 
         public Vector2 GenerateSpawnLocation()
         { 
             Chunk chosenChunk = null;
+            float height = 0;
             for (int x = -5; x < 5; x++)
             {
                 for (int y = -5; y < 5; y++)
                 {
-                    chosenChunk = LoadChunk(x, y);
+                    Chunk chunk = LoadChunk(x, y);
+                    for (int i = 0; i < chunk.heightMap.Length; i++)
+                    {
+                        height = chunk.heightMap[i];
+                        if (height > 0 && height < 64)
+                        {
+                            chosenChunk = chunk;
+                            break;
+                        }
+                    }
                 }
             }
             int chosenSpot = Game1.GameRandom.Next(64);
-            int Y = 0; //fix this anyways
-            return new Vector2((chosenSpot + chosenChunk.x * 64) * Tile.tilesize, -Y * Tile.tilesize) ;
+            int Y = (int)height; //fix this anyways
+            return new Vector2((chosenSpot + chosenChunk.x * 64) * Tile.tilesize, Y * Tile.tilesize) ;
         }
     }
 }

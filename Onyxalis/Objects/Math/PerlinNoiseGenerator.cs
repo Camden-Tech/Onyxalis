@@ -7,7 +7,7 @@ namespace Onyxalis.Objects.Math
 {
   class PerlinNoiseGenerator
   {
-      public static float[,] Generate2DPerlinNoise(int width, int height, int octaves, float persistence, float frequency, float amplitude)
+      public static float[,] Generate2DPerlinNoiseMap(int width, int height, int octaves, float persistence, float frequency, float amplitude, int seed)
       {
           float[,] noiseMap = new float[width, height];
 
@@ -20,7 +20,7 @@ namespace Onyxalis.Objects.Math
                       float xCoord = x * frequency / width;
                       float yCoord = y * frequency / height;
 
-                      float perlinValue = IcariaNoise.GradientNoise(xCoord, yCoord) * 2 - 1;
+                      float perlinValue = IcariaNoise.GradientNoise(xCoord, yCoord, seed);
                       noiseMap[x, y] += perlinValue * amplitude;
                   }
               }
@@ -31,6 +31,25 @@ namespace Onyxalis.Objects.Math
   
           return noiseMap;
       }
+        public static float Generate2DPerlinNoise(int startX, int startY, int octaves, float persistence, float frequency, float amplitude, int seed)
+        {
+            float noise = 0;
+
+            for (int octave = 0; octave < octaves; octave++)
+            {
+                float xCoord = startX * frequency;
+                float yCoord = startY * frequency;
+
+                float perlinValue = IcariaNoise.GradientNoise(xCoord, yCoord);
+                noise += perlinValue * amplitude;
+                    
+
+                frequency *= 2; // Increase the frequency for the next octave
+                amplitude *= persistence; // Reduce the amplitude for the next octave
+            }
+
+            return noise;
+        }
         public static float[] GeneratePerlinNoise(int width, int octaves, float persistence, float frequency, float amplitude, int seed)
         {
             float[] noiseMap = new float[width];
@@ -95,11 +114,11 @@ namespace Onyxalis.Objects.Math
             float amplitude = 1f;
             return GeneratePerlinNoise(width, octaves, persistence, frequency, amplitude, seed);
         }
-        public  static float[,] Generate2DPerlinNoise(int width, int height, int octaves, float persistence)
+        public  static float[,] Generate2DPerlinNoise(int width, int height, int octaves, float persistence, int seed)
       {
           float frequency = 1f;
           float amplitude = 1f;
-          return Generate2DPerlinNoise(width, height, octaves, persistence, frequency, amplitude);
+          return Generate2DPerlinNoiseMap(width, height, octaves, persistence, frequency, amplitude, seed);
       }
   }
 }
