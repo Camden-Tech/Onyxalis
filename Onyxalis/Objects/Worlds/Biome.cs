@@ -30,32 +30,11 @@ namespace Onyxalis.Objects.Worlds
 
             return HorizontalBiomeType.Plains; 
         }
-        public static BiomeType GetTerrainType(float value)
-        {
-            if (value <= 0.2)
-            {
-                return BiomeType.Scary;
-            }
-            else if (value < 0.9)
-            {
-                return BiomeType.Basic;
-            }
-            else if (value >= 0.9)
-            {
-                return BiomeType.Riches;
-            }
-            
-            
-            // ... add other conditions here
-
-            return BiomeType.Basic;
-        }
 
         public float temperature;
         public float amplitude;
         public BiomeType type;
         public HorizontalBiomeType horizontalType;
-        public postGenBiomeType postGenType;
 
         public static Dictionary<int, (float amp, float frequency)> biomeStats = new Dictionary<int, (float amp, float frequency)>()
         {
@@ -66,13 +45,6 @@ namespace Onyxalis.Objects.Worlds
         };
         
         public enum BiomeType
-        {
-            Scary,
-            Riches,
-            Basic
-        }
-
-        public enum postGenBiomeType
         {
             
             Troposphere,
@@ -99,6 +71,30 @@ namespace Onyxalis.Objects.Worlds
             
         }
 
+        public static BiomeType GetBiomeType(float height[]) {
+            float lowestHeight = 0;
+            BiomeType biomeType;
+            for (int X = 0; X < 64; X++)
+            {
+                float height = heightMap[X] - y * 64;
+                if (height < lowestHeight)
+                {
+                    lowestHeight = height;
+                }
+            }
+        
+            if (lowestHeight > 160)
+            {
+                biomeType = BiomeType.Underground;
+                
+            } else if (lowestHeight < 160) {
+                biomeType = BiomeType.Space;
+            } else {
+                biomeType = BiomeType.Surface;
+            }
+        }
+        
+        
         public Biome(BiomeType type, HorizontalBiomeType horizontalType, float temp, float amp) 
         {
             this.type = type;
