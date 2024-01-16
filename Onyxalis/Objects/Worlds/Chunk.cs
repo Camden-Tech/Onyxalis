@@ -57,6 +57,9 @@ namespace Onyxalis.Objects.Worlds
 
             return heightMap;
         }
+
+        
+        
         private Tile GenerateTile(int X, int Y, float height)
         {
             Tile tile = new Tile
@@ -114,7 +117,7 @@ namespace Onyxalis.Objects.Worlds
                 }
                 else
                 {
-                    tile.Type = freezing ? Tile.TileType.PERMAFROST : Tile.TileType.STONE;
+                    tile.Type = freezing ? Tile.TileType .PERMAFROST : Tile.TileType.STONE;
                     tile.rotation = world.worldRandom.Next(4);
                 }
             }
@@ -148,27 +151,11 @@ namespace Onyxalis.Objects.Worlds
         }
         public void GenerateTiles()
         {
-            float lowestHeight = 0;
-            float[] optimizedHeight = new float[64];
+            
         
             for (int X = 0; X < 64; X++)
             {
                 float height = heightMap[X] - y * 64;
-                if (height < lowestHeight)
-                {
-                    lowestHeight = height;
-                }
-                optimizedHeight[X] = height;
-            }
-        
-            if (lowestHeight > 160)
-            {
-                biome.postGenBiomeType = postGenBiomeType.Underground;
-            }
-        
-            for (int X = 0; X < 64; X++)
-            {
-                float height = optimizedHeight[X];
                 for (int Y = 0; Y < height && Y < 64; Y++)
                 {
                     tiles[X, Y] = GenerateTile(X, Y, height);
@@ -182,11 +169,14 @@ namespace Onyxalis.Objects.Worlds
         public static Chunk CreateChunk(int X, int Y, World world, bool GenerateTiles)
         {
             Chunk newChunk = new Chunk();
-            newChunk.world = world;
-            newChunk.biome = world.getBiome(X, Y);
-            newChunk.GenerateHeightMap();
             newChunk.x = X;
             newChunk.y = Y;
+            newChunk.world = world;
+            newChunk.biome = world.getBiome(X, Y);
+            
+            newChunk.GenerateHeightMap();
+            newChunk.biome.type = Biome.getBiomeType(heightMap);
+           
             int seed = world.seed;
            
             if(GenerateTiles) newChunk.GenerateTiles();
