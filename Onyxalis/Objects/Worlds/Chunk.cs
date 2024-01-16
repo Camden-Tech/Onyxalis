@@ -80,7 +80,7 @@ namespace Onyxalis.Objects.Worlds
                             {
                                 if (world.worldRandom.Next(5) > 3)
                                 {
-                                    tile.Type = (Tile.TileType)world.worldRandom.Next(2) + 12;
+                                    tile.Type = (Tile.TileType)(world.worldRandom.Next(2) + 12);
                                     tile.rotation = 0;
                                 }
                             } else if (freezing)
@@ -143,7 +143,7 @@ namespace Onyxalis.Objects.Worlds
                         }
                         else
                         {
-                            tile.Type = (Tile.TileType)world.worldRandom.Next(4) + 2; //Generate dirt
+                            tile.Type = (Tile.TileType)(world.worldRandom.Next(4) + 2); //Generate dirt
                             tile.rotation = world.worldRandom.Next(4);
                         }
                     }
@@ -156,7 +156,7 @@ namespace Onyxalis.Objects.Worlds
                         }
                         else
                         {
-                            tile.Type = (Tile.TileType)world.worldRandom.Next(4) + 2; //just right, generate dirt
+                            tile.Type = (Tile.TileType)(world.worldRandom.Next(4) + 2); //just right, generate dirt
                             tile.rotation = world.worldRandom.Next(4);
                         }
                     }
