@@ -57,113 +57,122 @@ namespace Onyxalis.Objects.Worlds
 
             return heightMap;
         }
+        private Tile GenerateTile(int X, int Y, float height)
+        {
+            Tile tile = new Tile
+            {
+                x = X + x * 64,
+                chunkPos = (X, Y),
+                y = Y + y * 64
+            };
+        
+            bool freezing = biome.temperature < 0;
+            bool hot = biome.temperature > 80;
+            bool matchesHeight = Y == (int)height;
+            bool rightAboveHeight = Y + 1 == (int)height;
+        
+            if (height <= 32)
+            {
+                if (rightAboveHeight)
+                {
+                    if (!freezing && !hot && world.worldRandom.Next(5) > 3)
+                    {
+                        tile.Type = (Tile.TileType)(world.worldRandom.Next(2) + 12);
+                        tile.rotation = 0;
+                    }
+                    else if (freezing && world.worldRandom.Next(10) > 9)
+                    {
+                        tile.Type = Tile.TileType.SHRUB;
+                        tile.rotation = 0;
+                    }
+                }
+                else if (matchesHeight)
+                {
+                    if (!freezing && !hot)
+                    {
+                        tile.Type = (Tile.TileType)world.worldRandom.Next(2);
+                        tile.rotation = 0;
+                    }
+                    else if (freezing)
+                    {
+                        tile.Type = Tile.TileType.SNOW;
+                        tile.rotation = world.worldRandom.Next(4);
+                    }
+                    else if (hot)
+                    {
+                        tile.Type = Tile.TileType.SAND;
+                        tile.rotation = world.worldRandom.Next(4);
+                    }
+                }
+            }
+            else if (Y < (int)height - 40)
+            {
+                if (Y < (int)height - 160)
+                {
+                    tile.Type = (Tile.TileType)(7 + world.worldRandom.Next(2));
+                    tile.rotation = 0;
+                }
+                else
+                {
+                    tile.Type = freezing ? Tile.TileType.PERMAFROST : Tile.TileType.STONE;
+                    tile.rotation = world.worldRandom.Next(4);
+                }
+            }
+            else if (height > 32)
+            {
+                int heightDif = (int)height - 32;
+                if (matchesHeight)
+                {
+                    tile.Type = Tile.TileType.SNOW;
+                    tile.rotation = world.worldRandom.Next(4);
+                }
+                else if (world.worldRandom.NextDouble() / heightDif < 0.05)
+                {
+                    tile.Type = Tile.TileType.STONE;
+                    tile.rotation = world.worldRandom.Next(4);
+                }
+                else
+                {
+                    tile.Type = (Tile.TileType)(world.worldRandom.Next(4) + 2);
+                    tile.rotation = world.worldRandom.Next(4);
+                }
+            }
+            else
+            {
+                tile.Type = hot ? Tile.TileType.SAND : (Tile.TileType)(world.worldRandom.Next(4) + 2);
+                tile.rotation = world.worldRandom.Next(4);
+            }
+        
+            tile.hitbox.Position = new Microsoft.Xna.Framework.Vector2(tile.x * Tile.tilesize, tile.y * Tile.tilesize);
+            return tile;
+        }
         public void GenerateTiles()
         {
+            float lowestHeight = 0;
+            float[] optimizedHeight = new float[64];
+        
             for (int X = 0; X < 64; X++)
             {
                 float height = heightMap[X] - y * 64;
+                if (height < lowestHeight)
+                {
+                    lowestHeight = height;
+                }
+                optimizedHeight[X] = height;
+            }
+        
+            if (lowestHeight > 160)
+            {
+                biome.postGenBiomeType = postGenBiomeType.Underground;
+            }
+        
+            for (int X = 0; X < 64; X++)
+            {
+                float height = optimizedHeight[X];
                 for (int Y = 0; Y < height && Y < 64; Y++)
                 {
-                    Tile tile = new Tile();
-                    tile.x = X + x * 64;
-                    tile.chunkPos = (X, Y);
-                    tile.y = Y + y * 64;
-                    bool freezing = biome.temperature < 0;
-                    bool hot = biome.temperature > 80;
-                    bool matchesHeight = Y == (int)height;
-                    bool rightAboveHeight = Y + 1 == (int)height;
-                    if (height <= 32)
-                    {
-                        if (rightAboveHeight)
-                        {
-                            if (!freezing && !hot)
-                            {
-                                if (world.worldRandom.Next(5) > 3)
-                                {
-                                    tile.Type = (Tile.TileType)(world.worldRandom.Next(2) + 12);
-                                    tile.rotation = 0;
-                                }
-                            } else if (freezing)
-                            {
-                                if (world.worldRandom.Next(10) > 9)
-                                {
-                                    tile.Type = Tile.TileType.SHRUB;
-                                    tile.rotation = 0;
-                                }
-                            }
-                        } else if (matchesHeight)
-                        { //If tile is the highest tile up, and the height is less than 33
-
-                            if (!freezing && !hot)
-                            { //Not too cold or hot, then generate grass
-                                tile.Type = (Tile.TileType)world.worldRandom.Next(2);
-                                tile.rotation = 0;
-                            }
-                            else if (freezing) //Too cold, generate snow
-                            {
-                                tile.Type = Tile.TileType.SNOW;
-                                tile.rotation = world.worldRandom.Next(4);
-                            }
-                            else if (hot)
-                            {
-                                tile.Type = Tile.TileType.SAND; //Too hot, generate sand
-                                tile.rotation = world.worldRandom.Next(4);
-                            }
-                        }
-                    } else if (Y < (int)height - 40) { //If tile is 40 tiles down from farthest tile up
-
-                        if (Y < (int)height - 160) //If tile is 160 tiles down from farthest tile up
-                        {
-                            tile.Type = (Tile.TileType)(7+world.worldRandom.Next(2)); //Generate deeprock
-                            tile.rotation = 0;
-                        } else
-                        {
-                            if (freezing) {
-                                tile.Type = Tile.TileType.PERMAFROST; //Generate stone
-                                tile.rotation = world.worldRandom.Next(4);
-                            } else
-                            {
-                                tile.Type = Tile.TileType.STONE; //Generate stone
-                                tile.rotation = world.worldRandom.Next(4);
-                            }
-                        }
-                            
-
-                    } else if (height > 32) //If height is above 32
-                    {
-                        int heightDif = (int)height - 32;
-                        if (matchesHeight)
-                        {
-                            tile.Type = Tile.TileType.SNOW; //Too high, generate snow
-                            tile.rotation = world.worldRandom.Next(4);
-                        } else if (world.worldRandom.NextDouble() / heightDif < 0.05)
-                        {
-                            tile.Type = Tile.TileType.STONE; //Gradual increasing chance to generate snow
-                            tile.rotation = world.worldRandom.Next(4);
-                        }
-                        else
-                        {
-                            tile.Type = (Tile.TileType)(world.worldRandom.Next(4) + 2); //Generate dirt
-                            tile.rotation = world.worldRandom.Next(4);
-                        }
-                    }
-                    else  //Generates dirt/sand tiles
-                    {
-                        if (hot)
-                        {
-                            tile.Type = Tile.TileType.SAND; //Too hot, generate sand
-                            tile.rotation = world.worldRandom.Next(4);
-                        }
-                        else
-                        {
-                            tile.Type = (Tile.TileType)(world.worldRandom.Next(4) + 2); //just right, generate dirt
-                            tile.rotation = world.worldRandom.Next(4);
-                        }
-                    }
-                    tile.hitbox.Position = new Microsoft.Xna.Framework.Vector2(tile.x * Tile.tilesize, tile.y * Tile.tilesize);
-                    tiles[X, Y] = tile;
+                    tiles[X, Y] = GenerateTile(X, Y, height);
                 }
-                
             }
         }
 
