@@ -10,6 +10,8 @@ using System.Linq;
 using System.Runtime.Serialization;
 using System.Runtime.Serialization.Formatters.Binary;
 using System.Text;
+using System.Diagnostics.Metrics;
+
 namespace Onyxalis.Objects.Systems
 {
     public static class ObjectSerializer
@@ -81,7 +83,7 @@ namespace Onyxalis.Objects.Systems
                 chunk.world = Game1.world;
                 (int X, int Y) = World.findChunkClusterPosition(chunk.x, chunk.y);
                 chunk.cluster = chunk.world.clusters[X,Y];
-
+                chunk.biome = chunk.cluster.biomes[chunk.whatChunkInCluster.x];
                 // Deserialize complex types (like the tiles array)
                 for (int i = 0; i < 64; i++)
                 {

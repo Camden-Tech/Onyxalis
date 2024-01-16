@@ -54,8 +54,7 @@ namespace Onyxalis
                 world = World.CreateWorld();
                 Vector2 spawnLoc = world.GenerateSpawnLocation();
                 spawnLoc.Y *= -1;
-                //player.position = spawnLoc;
-                player.position = new Vector2(500,500);
+                player.position = spawnLoc;
                 player.world = world;
                 player.scale = 2;
                 Debug.WriteLine("asd ");
@@ -88,6 +87,7 @@ namespace Onyxalis
             tileTextureDictionary.Add(Tile.TileType.GRASS, Content.Load<Texture2D>("Grass"));
             tileTextureDictionary.Add(Tile.TileType.DIRT3, Content.Load<Texture2D>("DirtThree"));
             tileTextureDictionary.Add(Tile.TileType.GRASS2, Content.Load<Texture2D>("GrassTwo"));
+            tileTextureDictionary.Add(Tile.TileType.STONE, Content.Load<Texture2D>("Stone"));
             playerTextureDictionary.Add(Player.PlayerTextures.Body, Content.Load<Texture2D>("BeautifulPlayerCharacter"));
             tileTextureDictionary.Add(Tile.TileType.DIRT4, Content.Load<Texture2D>("DirtFour"));
             // TODO: use this.Content to load your game content here
@@ -123,8 +123,9 @@ namespace Onyxalis
             {
                 for (int y = -5; y < 5; y++)
                 {
+                    
                     Chunk c = world.LoadChunk((int)(player.position.X / (Tile.tilesize) / 64 + x), (int)(player.position.Y / (Tile.tilesize) / 64) + y);
-
+                    
                     c.loaded = true;
                 }
             }

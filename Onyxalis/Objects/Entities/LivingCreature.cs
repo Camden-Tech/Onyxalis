@@ -42,10 +42,10 @@ namespace Onyxalis.Objects.Entities
             {
                 if (hitbox.CollidesWith(box))
                 {
-                   hitbox.Update(oldPos, 0);
-                   position = oldPos;
-                    Velocity = Vector2.Zero;
-                   Acceleration = Vector2.Zero;
+                  // hitbox.Update(oldPos, 0);
+                 //  position = oldPos;
+                 //   Velocity = Vector2.Zero;
+                //   Acceleration = Vector2.Zero;
                     /*
                     // Step 1: Get the closest vertex on the this object to draw a line from later
                     float lastDistance = -1;

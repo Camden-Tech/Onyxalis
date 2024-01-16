@@ -164,11 +164,15 @@ namespace Onyxalis.Objects.Worlds
         public static World CreateWorld()
         {
             World world = new();
+            world.GenerateSeed();
             world.weather = new Weather(); //Generate Weather Method
             return world;
         }
 
-
+        public static (int x, int y) findBiomeMapPosition(float X, float Y)
+        {
+            return ((int)MathF.Round((X - 3.5f) / 8f), (int)(MathF.Round((Y - 3.5f) / 8f)));
+        }
         public static (int x, int y) findTilePosition(float X, float Y)
         {
             return ((int)MathF.Round((X - (Tile.tilesize / 2 - 0.5f)) / Tile.tilesize), (int)MathF.Round((Y - (Tile.tilesize / 2 - 0.5f)) / Tile.tilesize));
@@ -230,7 +234,10 @@ namespace Onyxalis.Objects.Worlds
             (int X, int Y) = findChunkClusterPosition(x, y);
 
             ChunkCluster cluster = clusters[X, Y];
-            if(cluster == null) cluster = CreateChunkCluster(X, Y);
+            (int X, int Y) mapPos = findChunkClusterPosition(X, Y);
+            BiomeMap map = biomeMaps[mapPos.X, mapPos.Y];
+            if (map == null) map = CreateBiomeMap(mapPos.X, mapPos.Y);
+            if (cluster == null) cluster = CreateChunkCluster(X, Y, map);
             int whatChunkX = x - X * 16;
             int whatChunkY = y - Y * 16;
             Chunk chunk = loadedChunks[(x, y)];
@@ -241,18 +248,29 @@ namespace Onyxalis.Objects.Worlds
             loadedChunks.Add((x, y), chunk);
             return chunk;
         }
-        public ChunkCluster CreateChunkCluster(int x, int y)
+        public BiomeMap CreateBiomeMap(int x, int y)
         {
-            ChunkCluster cluster = new ChunkCluster();
+            BiomeMap map = new BiomeMap(this, x ,y);
+            biomeMaps[x, y] = map;
+            return map;
+        }
+        public ChunkCluster CreateChunkCluster(int x, int y, BiomeMap map)
+        {
+            ChunkCluster cluster = new ChunkCluster(this);
             cluster.world = this;
+            cluster.map = map;
             cluster.x = x; 
             cluster.y = y;
+            cluster.grabBiomes();
             cluster.GenerateHeightMap();
             clusters[x,y] = cluster;
             return cluster;
         }
 
-
+        public void GenerateSeed()
+        {
+            seed = Environment.TickCount;
+        }
         public Vector2 GenerateSpawnLocation()
         { 
             Chunk chosenChunk = null;
@@ -264,8 +282,8 @@ namespace Onyxalis.Objects.Worlds
                 }
             }
             int chosenSpot = Game1.GameRandom.Next(64);
-            int Y = ((int)chosenChunk.cluster.heightMap[chosenChunk.whatChunkInCluster.x * 16 + chosenSpot]) - chosenChunk.whatChunkInCluster.y * 64 - 4;
-            return new Vector2(chosenSpot + chosenChunk.x * 64, Y) * Tile.tilesize;
+            int Y = ((int)chosenChunk.cluster.heightMap[chosenChunk.whatChunkInCluster.x * 16 + chosenSpot]) + chosenChunk.whatChunkInCluster.y * 64 - 4;
+            return new Vector2((chosenSpot + chosenChunk.x * 64) * Tile.tilesize, -Y * Tile.tilesize) ;
         }
     }
 }

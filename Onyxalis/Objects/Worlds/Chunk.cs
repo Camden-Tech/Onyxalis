@@ -1,4 +1,8 @@
-﻿using Lucene.Net.Support;
+﻿using Icaria.Engine.Procedural;
+using Lucene.Net.Search;
+using Lucene.Net.Support;
+using MiNET.Effects;
+using MiNET.Net;
 using MiNET.Utils;
 using Onyxalis.Objects.Entities;
 using Onyxalis.Objects.Math;
@@ -27,36 +31,78 @@ namespace Onyxalis.Objects.Worlds
         public bool surfaceChunk;
 
         public int x;
-         public int y;
+        public int y;
+
+        public Biome biome;
 
         public bool loaded;
         public World world; //Do not serialize
 
         public void GenerateTiles()
         {
-            for (int X = 0; X < 64; X++)
-            {
-                float height = cluster.heightMap[X + whatChunkInCluster.x * 64] - whatChunkInCluster.y * 64 - cluster.y * 1024;
-                for (int Y = 0; Y < height && Y < 64; Y++)
+            if (cluster.y == 0) {
+                for (int X = 0; X < 64; X++)
                 {
-                    Tile tile = new Tile();
-                    tile.x = X + x * 64;
-                    tile.chunkPos = (X, Y);
-                    tile.y = Y + y * 64;
-                    if (Y == (int)height) {
-                        tile.Type = (Tile.TileType)cluster.chunkRandom.Next(2);
-                        tile.rotation = 0;
-                    }
-                    else
+                    float height = cluster.heightMap[X + whatChunkInCluster.x * 64] - whatChunkInCluster.y * 64 - cluster.y * 1024;
+                    for (int Y = 0; Y < height && Y < 64; Y++)
                     {
-                        tile.Type = (Tile.TileType)cluster.chunkRandom.Next(4) + 2;
-                        tile.rotation = cluster.chunkRandom.Next(4);
+                        Tile tile = new Tile();
+                        tile.x = X + x * 64;
+                        tile.chunkPos = (X, Y);
+                        tile.y = Y + y * 64;
+                        if (Y == (int)height && height <= 512) {
+                            tile.Type = (Tile.TileType)cluster.chunkRandom.Next(2);
+                            tile.rotation = 0;
+                        } else if (Y < (int)height - 40)
+                        {
+                            tile.Type = Tile.TileType.STONE;
+                            tile.rotation = cluster.chunkRandom.Next(4);
+
+                        } else if (height > 512)
+                        {
+                            int heightDif = (int)height - 512;
+                            if (cluster.chunkRandom.NextDouble() / heightDif < 0.05)
+                            {
+                                tile.Type = Tile.TileType.STONE;
+                                tile.rotation = cluster.chunkRandom.Next(4);
+                            }
+                            else
+                            {
+                                tile.Type = (Tile.TileType)cluster.chunkRandom.Next(4) + 2;
+                                tile.rotation = cluster.chunkRandom.Next(4);
+                            }
+                        }
+                        else
+                        {
+                            tile.Type = (Tile.TileType)cluster.chunkRandom.Next(4) + 2;
+                            tile.rotation = cluster.chunkRandom.Next(4);
+                        }
+                        tile.hitbox.Position = new Microsoft.Xna.Framework.Vector2(tile.x * Tile.tilesize, tile.y * Tile.tilesize);
+                        tiles[X, Y] = tile;
                     }
-                    tile.hitbox.Position = new Microsoft.Xna.Framework.Vector2(tile.x * Tile.tilesize, tile.y * Tile.tilesize);
-                    tiles[X, Y] = tile;
-                } 
+                }
+            } else if (cluster.y < 0)
+            {
+                for (int X = 0; X < 64; X++)
+                {
+                    for (int Y = 0; Y < 64; Y++)
+                    {
+                        Tile tile = new Tile();
+                        tile.x = X + x * 64;
+                        tile.chunkPos = (X, Y);
+                        tile.y = Y + y * 64;
+                        tile.Type = Tile.TileType.STONE;
+                        tile.rotation = cluster.chunkRandom.Next(4);
+                        tile.hitbox.Position = new Microsoft.Xna.Framework.Vector2(tile.x * Tile.tilesize, tile.y * Tile.tilesize);
+                        tiles[X, Y] = tile;
+                    }
+                }
             }
         }
+        
+
+
+
         
         public static Chunk CreateChunk(int X, int Y, World world, bool GenerateTiles, bool SurfaceChunk, ChunkCluster cluster)
         {
@@ -65,6 +111,7 @@ namespace Onyxalis.Objects.Worlds
             newChunk.cluster = cluster;
             newChunk.whatChunkInCluster.x = X;
             newChunk.whatChunkInCluster.y = Y;
+            newChunk.biome = cluster.biomes[X];
             newChunk.x = X + cluster.x * 16;
             newChunk.y = Y + cluster.y * 16;
             int seed = world.seed;
