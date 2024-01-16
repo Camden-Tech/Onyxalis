@@ -173,13 +173,13 @@ namespace Onyxalis.Objects.Worlds
         public static Chunk CreateChunk(int X, int Y, World world, bool GenerateTiles)
         {
             Chunk newChunk = new Chunk();
-
+            newChunk.world = world;
             newChunk.biome = world.getBiome(X, Y);
             newChunk.GenerateHeightMap();
             newChunk.x = X;
             newChunk.y = Y;
             int seed = world.seed;
-            newChunk.world = world;
+           
             if(GenerateTiles) newChunk.GenerateTiles();
             return newChunk;
         }

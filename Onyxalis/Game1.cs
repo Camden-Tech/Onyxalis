@@ -82,23 +82,23 @@ namespace Onyxalis
         protected override void LoadContent()
         {
             _spriteBatch = new SpriteBatch(GraphicsDevice);
-            tileTextureDictionary.Add(Tile.TileType.DIRT1, Content.Load<Texture2D>("Dirt"));
-            tileTextureDictionary.Add(Tile.TileType.DIRT2, Content.Load<Texture2D>("DirtTwo"));
-            tileTextureDictionary.Add(Tile.TileType.GRASS, Content.Load<Texture2D>("Grass"));
-            tileTextureDictionary.Add(Tile.TileType.DIRT3, Content.Load<Texture2D>("DirtThree"));
-            tileTextureDictionary.Add(Tile.TileType.GRASS2, Content.Load<Texture2D>("GrassTwo"));
-            tileTextureDictionary.Add(Tile.TileType.STONE, Content.Load<Texture2D>("Stone"));
-            tileTextureDictionary.Add(Tile.TileType.DEEPROCK, Content.Load<Texture2D>("Deeprock"));
-            tileTextureDictionary.Add(Tile.TileType.DEEPROCK2, Content.Load<Texture2D>("DeeprockTwo"));
-            tileTextureDictionary.Add(Tile.TileType.PERMAFROST, Content.Load<Texture2D>("Permafrost"));
-            tileTextureDictionary.Add(Tile.TileType.SHORTGRASS, Content.Load<Texture2D>("Shortgrass"));
-            tileTextureDictionary.Add(Tile.TileType.TALLGRASS, Content.Load<Texture2D>("Tallgrass"));
-            tileTextureDictionary.Add(Tile.TileType.COPPERDEEPROCK, Content.Load<Texture2D>("CopperDeeprock"));
-            tileTextureDictionary.Add(Tile.TileType.SNOW, Content.Load<Texture2D>("Snow"));
-            tileTextureDictionary.Add(Tile.TileType.SAND, Content.Load<Texture2D>("Sand"));
-            tileTextureDictionary.Add(Tile.TileType.SHRUB, Content.Load<Texture2D>("Shrub"));
-            playerTextureDictionary.Add(Player.PlayerTextures.Body, Content.Load<Texture2D>("BeautifulPlayerCharacter"));
-            tileTextureDictionary.Add(Tile.TileType.DIRT4, Content.Load<Texture2D>("DirtFour"));
+            tileTextureDictionary.Add(Tile.TileType.DIRT1, Content.Load<Texture2D>("Tiles/Dirt"));
+            tileTextureDictionary.Add(Tile.TileType.DIRT2, Content.Load<Texture2D>("Tiles/DirtTwo"));
+            tileTextureDictionary.Add(Tile.TileType.GRASS, Content.Load<Texture2D>("Tiles/Grass"));
+            tileTextureDictionary.Add(Tile.TileType.DIRT3, Content.Load<Texture2D>("Tiles/DirtThree"));
+            tileTextureDictionary.Add(Tile.TileType.GRASS2, Content.Load<Texture2D>("Tiles/GrassTwo"));
+            tileTextureDictionary.Add(Tile.TileType.STONE, Content.Load<Texture2D>("Tiles/Stone"));
+            tileTextureDictionary.Add(Tile.TileType.DEEPROCK, Content.Load<Texture2D>("Tiles/Deeprock"));
+            tileTextureDictionary.Add(Tile.TileType.DEEPROCK2, Content.Load<Texture2D>("Tiles/DeeprockTwo"));
+            tileTextureDictionary.Add(Tile.TileType.PERMAFROST, Content.Load<Texture2D>("Tiles/Permafrost"));
+            tileTextureDictionary.Add(Tile.TileType.SHORTGRASS, Content.Load<Texture2D>("Tiles/Shortgrass"));
+            tileTextureDictionary.Add(Tile.TileType.TALLGRASS, Content.Load<Texture2D>("Tiles/Tallgrass"));
+            tileTextureDictionary.Add(Tile.TileType.COPPERDEEPROCK, Content.Load<Texture2D>("Tiles/CopperDeeprock"));
+            tileTextureDictionary.Add(Tile.TileType.SNOW, Content.Load<Texture2D>("Tiles/Snow"));
+            tileTextureDictionary.Add(Tile.TileType.SAND, Content.Load<Texture2D>("Tiles/Sand"));
+            tileTextureDictionary.Add(Tile.TileType.SHRUB, Content.Load<Texture2D>("Tiles/Shrub"));
+            playerTextureDictionary.Add(Player.PlayerTextures.Body, Content.Load<Texture2D>("Player/BeautifulPlayerCharacter"));
+            tileTextureDictionary.Add(Tile.TileType.DIRT4, Content.Load<Texture2D>("Tiles/DirtFour"));
             // TODO: use this.Content to load your game content here
             Texture2D texture = playerTextureDictionary[Player.PlayerTextures.Body];
             player.hitbox = new Hitbox(new Vector2[] { new Vector2(0,0), new Vector2(texture.Width, 0), new Vector2(texture.Width, -texture.Height), new Vector2(0, -texture.Height) }, player.position, 2);

@@ -79,7 +79,7 @@ namespace Onyxalis.Objects.Systems
                 chunk.x = int.Parse(lines[lineIndex++]);
                 chunk.y = int.Parse(lines[lineIndex++]);
                 chunk.world = Game1.world;
-                chunk.horizontalBiome = chunk.world.getHorizontalBiome(chunk.x);
+                chunk.biome = chunk.world.getBiome(chunk.x, chunk.y);
                 // Deserialize complex types (like the tiles array)
                 for (int i = 0; i < 64; i++)
                 {
