@@ -55,6 +55,7 @@ namespace Onyxalis.Objects.Worlds
         public float amplitude;
         public BiomeType type;
         public HorizontalBiomeType horizontalType;
+        public postGenBiomeType postGenType;
 
         public static Dictionary<int, (float amp, float frequency)> biomeStats = new Dictionary<int, (float amp, float frequency)>()
         {
@@ -69,7 +70,21 @@ namespace Onyxalis.Objects.Worlds
             Scary,
             Riches,
             Basic
+        }
 
+        public enum postGenBiomeType
+        {
+            
+            Troposphere,
+            Stratosphere,
+            Exosphere,
+            Space,
+            Underground,
+            Caves,
+            Surface,
+            GravityDistortionZone
+            
+            
         }
 
 
