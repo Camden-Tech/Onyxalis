@@ -27,12 +27,11 @@ namespace Onyxalis.Objects.Worlds
         
 
         public float[] heightMap = new float[64];
-        public (int x, int y)[] cavesPoints = (int x, int y)[];
+        public (int x, int y, int radius)[] cavePoints = (int x, int y, int radius)[];
         public int x;
         public int y;
 
         public Biome biome;
-
         public bool loaded;
         public World world; //Do not serialize
         public float[] GenerateHeightMap()
@@ -58,14 +57,13 @@ namespace Onyxalis.Objects.Worlds
             return heightMap;
         }
 
-        public (int x, int y)[] generateCavePoints)(int maxAmount){
+        public (int x, int y, int radius)[] GenerateCavePoints)(int maxAmount){
             Random cavePointRandom = new Random(world.seed + new Random(x).next(4000) + new Random(y).next(4000));
-            int size = cavePointRandom.next(maxAmount);
-            (int x, int y)[] cavePoints = (int x, int y)[size];
+            int size = cavePointRandom.next(maxAmount - 1) + 1;
             for(int i = 0; i < size; i++){
-                cavePoints[i] = (cavePointRandom.next(64), cavePointRandom.next(64));
+                cavePoints[i] = (cavePointRandom.next(64), cavePointRandom.next(64), cavePointRandom.next(15) + 5);
             }
-            
+            return cavePoint;
         }
         
         
@@ -170,12 +168,33 @@ namespace Onyxalis.Objects.Worlds
                     tiles[X, Y] = GenerateTile(X, Y, height);
                 }
             }
-            
+            for(int i = 0; i < cavePoints.length; i++) {
+                    (int x, int y, int radius) point = cavePoints[i];
+                    for(int x = -point.radius; x < point.radius; x++) {
+                        int adjustedX = x + point.x;
+                        int adjustedY = y + point.y;
+                        if(adjustedX >= 0) {
+                            for(int y = -point.radius; y < point.radius; y++) {
+                                if(adjustedY >= 0) {
+                                    float distance = MathF.sqrt(MathF.Pow(x,2) + MathF.Pow(y,2));
+                                    if(distance <=  point.radius){
+                                        tiles[adjustedX, adjustedY] = null;
+                                    }
+                                }
+                                
+                            }   
+                        }
+                    }
+            }   
             
         }
 
-        public void GenerateSubBiomes(){
-            
+        public int GetMaxAmount(Biome biome){
+            int amount = 0;
+            if(biome.type == BiomeType.Underground){
+                amount = 5;
+            }
+            return amount;
         }
         
 
@@ -186,10 +205,10 @@ namespace Onyxalis.Objects.Worlds
             newChunk.y = Y;
             newChunk.world = world;
             newChunk.biome = world.getBiome(X, Y);
-            
+            newChunk.GenerateCavePoints(newChunk.GetMaxAmount(newChunk.biome));
             newChunk.GenerateHeightMap();
             newChunk.biome.type = Biome.getBiomeType(heightMap);
-           
+            
             int seed = world.seed;
            
             if(GenerateTiles) newChunk.GenerateTiles();
