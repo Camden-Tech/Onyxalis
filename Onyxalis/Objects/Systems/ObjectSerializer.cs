@@ -81,9 +81,7 @@ namespace Onyxalis.Objects.Systems
                 chunk.x = int.Parse(lines[lineIndex++]);
                 chunk.y = int.Parse(lines[lineIndex++]);
                 chunk.world = Game1.world;
-                (int X, int Y) = World.findChunkClusterPosition(chunk.x, chunk.y);
-                chunk.cluster = chunk.world.clusters[X,Y];
-                chunk.biome = chunk.cluster.biomes[chunk.whatChunkInCluster.x];
+                chunk.biome = chunk.world.getBiome(chunk.x,chunk.y);
                 // Deserialize complex types (like the tiles array)
                 for (int i = 0; i < 64; i++)
                 {

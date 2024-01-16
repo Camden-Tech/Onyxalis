@@ -66,7 +66,7 @@ namespace Onyxalis.Objects.Worlds
                         tile.x = X + x * 64;
                         tile.chunkPos = (X, Y);
                         tile.y = Y + y * 64;
-                        if (Y == (int)height && height <= 512) {
+                        if (Y == (int)height && height <= 32) {
                             tile.Type = (Tile.TileType)world.worldRandom.Next(2);
                             tile.rotation = 0;
                         } else if (Y < (int)height - 40)
@@ -74,9 +74,9 @@ namespace Onyxalis.Objects.Worlds
                             tile.Type = Tile.TileType.STONE;
                             tile.rotation = world.worldRandom.Next(4);
 
-                        } else if (height > 512)
+                        } else if (height > 32)
                         {
-                            int heightDif = (int)height - 512;
+                            int heightDif = (int)height - 32;
                             if (world.worldRandom.NextDouble() / heightDif < 0.05)
                             {
                                 tile.Type = Tile.TileType.STONE;
