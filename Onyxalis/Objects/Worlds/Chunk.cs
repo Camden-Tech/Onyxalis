@@ -27,7 +27,7 @@ namespace Onyxalis.Objects.Worlds
         
 
         public float[] heightMap = new float[64];
-
+        public (int x, int y)[] cavesPoints = (int x, int y)[];
         public int x;
         public int y;
 
@@ -58,6 +58,15 @@ namespace Onyxalis.Objects.Worlds
             return heightMap;
         }
 
+        public (int x, int y)[] generateCavePoints)(int maxAmount){
+            Random cavePointRandom = new Random(world.seed + new Random(x).next(4000) + new Random(y).next(4000));
+            int size = cavePointRandom.next(maxAmount);
+            (int x, int y)[] cavePoints = (int x, int y)[size];
+            for(int i = 0; i < size; i++){
+                cavePoints[i] = (cavePointRandom.next(64), cavePointRandom.next(64));
+            }
+            
+        }
         
         
         private Tile GenerateTile(int X, int Y, float height)
@@ -161,10 +170,14 @@ namespace Onyxalis.Objects.Worlds
                     tiles[X, Y] = GenerateTile(X, Y, height);
                 }
             }
+            
+            
         }
 
-
-
+        public void GenerateSubBiomes(){
+            
+        }
+        
 
         public static Chunk CreateChunk(int X, int Y, World world, bool GenerateTiles)
         {
