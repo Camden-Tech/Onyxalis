@@ -12,7 +12,7 @@ using System.Threading.Tasks;
 
 namespace Onyxalis.Objects.Worlds
 {
-    public class ChunkCluster
+    /*public class ChunkCluster //Not needed now that I know perlin noise is not recursive :) major refactoring time
     {
         public float[] heightMap = new float[1024]; // 1028 and 16 + 16 for lerping
         public float[] heightMapToLeft = new float[129];
@@ -93,6 +93,9 @@ namespace Onyxalis.Objects.Worlds
             {
                 for (int x = 0; x < width; x++)
                 {
+                    int biomeI = (x * biomes.Length) / width;
+                    Biome biome = biomes[biomeI];
+                    (float amp, float freq) = Biome.biomeStats[(int)biome.type];
                     float xCoord = (x+start) * frequency / width;
 
                     float perlinValue = IcariaNoise.GradientNoise(xCoord, 0, seed);
@@ -105,18 +108,7 @@ namespace Onyxalis.Objects.Worlds
                 frequency *= 2; // Increase the frequency for the next octave
                 amplitude *= persistence; // Reduce the amplitude for the next octave
             }
-            float[] newNoiseMap = new float[width];
-            for (int i = 1; i < noiseMap.Length; i++)
-            {
-                int biomeI = (i * biomes.Length) / width;
-                Biome biome = biomes[biomeI];
-                float oldValue = noiseMap[i];
-                (float amp, float freq) = Biome.biomeStats[(int)biome.type];
-                float newValue = (oldValue - noiseMap[i - 1]) * biome.amplitude * amp * amplitude;
-                newNoiseMap[i] = noiseMap[i] + newValue;
-            }
-            newNoiseMap[0] = noiseMap[0];
-            return newNoiseMap;
+            return noiseMap;
         }
 
         public Chunk GenerateChunk(int X, int Y, bool surfaceChunk)
@@ -127,5 +119,5 @@ namespace Onyxalis.Objects.Worlds
             return newChunk;
         }
 
-    }
+    }*/
 }

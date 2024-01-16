@@ -23,6 +23,15 @@ namespace Onyxalis.Objects.Tiles
             DIRT3,
             DIRT4,
             STONE,
+            DEEPROCK,
+            DEEPROCK2,
+            PERMAFROST,
+            SAND,
+            SHRUB,
+            SHORTGRASS,
+            TALLGRASS,
+            SNOW,
+            COPPERDEEPROCK,
             WOOD
         }
         public Tile()

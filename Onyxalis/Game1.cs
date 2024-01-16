@@ -88,6 +88,15 @@ namespace Onyxalis
             tileTextureDictionary.Add(Tile.TileType.DIRT3, Content.Load<Texture2D>("DirtThree"));
             tileTextureDictionary.Add(Tile.TileType.GRASS2, Content.Load<Texture2D>("GrassTwo"));
             tileTextureDictionary.Add(Tile.TileType.STONE, Content.Load<Texture2D>("Stone"));
+            tileTextureDictionary.Add(Tile.TileType.DEEPROCK, Content.Load<Texture2D>("Deeprock"));
+            tileTextureDictionary.Add(Tile.TileType.DEEPROCK2, Content.Load<Texture2D>("DeeprockTwo"));
+            tileTextureDictionary.Add(Tile.TileType.PERMAFROST, Content.Load<Texture2D>("Permafrost"));
+            tileTextureDictionary.Add(Tile.TileType.SHORTGRASS, Content.Load<Texture2D>("Shortgrass"));
+            tileTextureDictionary.Add(Tile.TileType.TALLGRASS, Content.Load<Texture2D>("Tallgrass"));
+            tileTextureDictionary.Add(Tile.TileType.COPPERDEEPROCK, Content.Load<Texture2D>("CopperDeeprock"));
+            tileTextureDictionary.Add(Tile.TileType.SNOW, Content.Load<Texture2D>("Snow"));
+            tileTextureDictionary.Add(Tile.TileType.SAND, Content.Load<Texture2D>("Sand"));
+            tileTextureDictionary.Add(Tile.TileType.SHRUB, Content.Load<Texture2D>("Shrub"));
             playerTextureDictionary.Add(Player.PlayerTextures.Body, Content.Load<Texture2D>("BeautifulPlayerCharacter"));
             tileTextureDictionary.Add(Tile.TileType.DIRT4, Content.Load<Texture2D>("DirtFour"));
             // TODO: use this.Content to load your game content here

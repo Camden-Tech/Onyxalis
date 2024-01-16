@@ -57,9 +57,9 @@ namespace Onyxalis.Objects.Math
 
             for (int octave = 0; octave < octaves; octave++)
             {
-                for (int x = start; x < width+start; x++)
+                for (int x = 0; x < width; x++)
                 {
-                    float xCoord = x * frequency / width;
+                    float xCoord = (x+start) * frequency / width;
 
                     float perlinValue = IcariaNoise.GradientNoise(xCoord, 0, seed);
                     noiseMap[x] += perlinValue * amplitude;
@@ -70,6 +70,24 @@ namespace Onyxalis.Objects.Math
             }
 
             return noiseMap;
+        }
+        public static float GeneratePerlinNoise(int octaves, float persistence, float frequency, float amplitude, int seed, int start)
+        {
+            float noise = 0;
+
+            for (int octave = 0; octave < octaves; octave++)
+            {
+                    float xCoord = start * frequency;
+
+                    float perlinValue = IcariaNoise.GradientNoise(xCoord, 0, seed);
+                    noise += perlinValue * amplitude;
+                
+
+                frequency *= 2; // Increase the frequency for the next octave
+                amplitude *= persistence; // Reduce the amplitude for the next octave
+            }
+
+            return noise;
         }
         public static float[] GeneratePerlinNoise(int width, int octaves, float persistence, int seed)
         {

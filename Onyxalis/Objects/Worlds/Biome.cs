@@ -34,11 +34,12 @@ namespace Onyxalis.Objects.Worlds
         public float temperature;
         public float amplitude;
         public BiomeType type;
+
         public static Dictionary<int, (float amp, float frequency)> biomeStats = new Dictionary<int, (float amp, float frequency)>()
         {
             {0, (1,1)},
-            {1, (20,0.15f)},
-            {2, (30,0.30f)},
+            {1, (10,0.15f)},
+            {2, (20,0.30f)},
             {3, (300, 1)}, // no frequency greater than 1
         };
         
@@ -51,6 +52,8 @@ namespace Onyxalis.Objects.Worlds
             Mountains = 3
             
         }
+
+
 
 
         public Biome(BiomeType type, float temp, float amp) 

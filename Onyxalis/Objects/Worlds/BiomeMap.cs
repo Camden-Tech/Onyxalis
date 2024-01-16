@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace Onyxalis.Objects.Worlds
 {
-    public class BiomeMap
+   /* public class BiomeMap //Not needed now that I know perlin noise is not recursive :)
     {
         public float[] amplitudePerlinNoiseMap = new float[128];
         public float[] amplitudePerlinNoiseMapLeft = new float[33];
@@ -24,7 +24,6 @@ namespace Onyxalis.Objects.Worlds
         public Biome[,] biomes = new Biome[8,16];
 
 
-        public int seed;
         public Random mapRandom;
         public int x;
         public int y;
@@ -33,9 +32,9 @@ namespace Onyxalis.Objects.Worlds
         {
             x = X;
             y = Y;
-            GenerateSeed();
-            mapRandom = new Random(seed);
+            
             world = World;
+            mapRandom = new Random(world.seed);
             GenerateAmplitudeMap();
             GenerateTemperatureMap();
             GenerateBiomeMap();
@@ -61,16 +60,12 @@ namespace Onyxalis.Objects.Worlds
 
 
 
-        public void GenerateSeed()
-        {
-            seed = Environment.TickCount + new Random(x).Next(100) + new Random(y).Next(100);
-        }
         public float[] GenerateBiomeMap()
         {
 
             BiomeMap mapToLeft = world.biomeMaps[x - 1, y];
             BiomeMap mapToRight = world.biomeMaps[x + 1, y];
-            float[] uneditedPerlinNoise = PerlinNoiseGenerator.GeneratePerlinNoise(160, 4, 1, 4, 1, seed);
+            float[] uneditedPerlinNoise = PerlinNoiseGenerator.GeneratePerlinNoise(160, 4, 1, 4, 1, world.seed, x * 128);
             float[] perlinNoise = new float[128];
             float[] unsplitPerlinNoise = new float[uneditedPerlinNoise.Length];
             int a = 0;
@@ -110,7 +105,7 @@ namespace Onyxalis.Objects.Worlds
 
             BiomeMap mapToLeft = world.biomeMaps[x - 1, y];
             BiomeMap mapToRight = world.biomeMaps[x + 1, y];
-            float[] uneditedPerlinNoise = PerlinNoiseGenerator.GeneratePerlinNoise(161, 4, 0.5f, 0.5f, 4, seed);
+            float[] uneditedPerlinNoise = PerlinNoiseGenerator.GeneratePerlinNoise(160, 4, 0.5f, 0.5f, 4, world.seed, x * 128);
             float[] unsplitPerlinNoise = new float[uneditedPerlinNoise.Length];
             int a = 0;
             foreach (float f in uneditedPerlinNoise) {
@@ -151,7 +146,7 @@ namespace Onyxalis.Objects.Worlds
 
             BiomeMap mapToLeft = world.biomeMaps[x - 1, y];
             BiomeMap mapToRight = world.biomeMaps[x + 1, y];
-            float[] unsplitPerlinNoise = PerlinNoiseGenerator.GeneratePerlinNoise(160, 4, 2, 3f, 4, seed);
+            float[] unsplitPerlinNoise = PerlinNoiseGenerator.GeneratePerlinNoise(160, 4, 2, 3f, 4, world.seed, x * 128);
             float[] perlinNoise = new float[128];
             Array.Copy(unsplitPerlinNoise, 32, perlinNoise, 0, 128);
             Array.Copy(unsplitPerlinNoise, 127, temperaturePerlinNoiseMapRight, 0, 33);
@@ -177,5 +172,5 @@ namespace Onyxalis.Objects.Worlds
 
             return temperaturePerlinNoiseMap;
         }
-    }
+    }*/
 }

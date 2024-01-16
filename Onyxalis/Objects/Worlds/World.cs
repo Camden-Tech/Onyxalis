@@ -2,6 +2,7 @@
 using MiNET.Utils;
 using Newtonsoft.Json.Linq;
 using Onyxalis.Objects.Entities;
+using Onyxalis.Objects.Math;
 using Onyxalis.Objects.Systems;
 using Onyxalis.Objects.Tiles;
 using Org.BouncyCastle.Tls.Crypto.Impl.BC;
@@ -22,9 +23,7 @@ namespace Onyxalis.Objects.Worlds
 {
     public class World
     {
-        public BiomeMaps biomeMaps = new BiomeMaps();
         public string name;
-        public ChunkClusters clusters = new ChunkClusters();
 
         public LoadedTiles tiles;
         Guid uuid;
@@ -40,77 +39,6 @@ namespace Onyxalis.Objects.Worlds
             onyxalisDirectory = Path.GetFullPath(Path.Combine(currentDirectory, @"..\..\..\..\"));
             filePath = Path.Combine(onyxalisDirectory, $"Worlds/" + name);
             tiles = new LoadedTiles(this);
-        }
-        public struct BiomeMaps
-        {
-            private BiomeMap[,] biomeMapArray;
-            private const int Offset = 50;
-            public BiomeMaps()
-            {
-                biomeMapArray = new BiomeMap[100, 100];
-            }
-
-            private (int, int) MapToWorldIndices(int x, int y)
-            {
-                return (x + Offset, y + Offset);
-            }
-            public BiomeMap this[int x, int y]
-            {
-                get
-                {
-                    (int arrayX, int arrayY) = MapToWorldIndices(x, y);
-                    if (arrayX < 0 || arrayX >= biomeMapArray.GetLength(0) || arrayY < 0 || arrayY >= biomeMapArray.GetLength(1))
-                    {
-                        throw new IndexOutOfRangeException("Coordinates are out of bounds.");
-                    }
-                    return biomeMapArray[arrayX, arrayY];
-                }
-                set
-                {
-                    (int arrayX, int arrayY) = MapToWorldIndices(x, y);
-                    if (arrayX < 0 || arrayX >= biomeMapArray.GetLength(0) || arrayY < 0 || arrayY >= biomeMapArray.GetLength(1))
-                    {
-                        throw new IndexOutOfRangeException("Coordinates are out of bounds.");
-                    }
-                    biomeMapArray[arrayX, arrayY] = value;
-                }
-            }
-        }
-
-        public struct ChunkClusters
-        {
-            private ChunkCluster[,] chunkArray;
-            private const int Offset = 50;
-            public ChunkClusters()
-            {
-                chunkArray = new ChunkCluster [100, 100];
-            }
-
-            private (int, int) MapToWorldIndices(int x, int y)
-            {
-                return (x + Offset, y + Offset);
-            }
-            public ChunkCluster this[int x, int y]
-            {
-                get
-                {
-                    (int arrayX, int arrayY) = MapToWorldIndices(x, y);
-                    if (arrayX < 0 || arrayX >= chunkArray.GetLength(0) || arrayY < 0 || arrayY >= chunkArray.GetLength(1))
-                    {
-                        throw new IndexOutOfRangeException("Coordinates are out of bounds.");
-                    }
-                    return chunkArray[arrayX, arrayY];
-                }
-                set
-                {
-                    (int arrayX, int arrayY) = MapToWorldIndices(x, y);
-                    if (arrayX< 0 || arrayX >= chunkArray.GetLength(0) || arrayY< 0 || arrayY >= chunkArray.GetLength(1))
-                    {
-                        throw new IndexOutOfRangeException("Coordinates are out of bounds.");
-                    }
-                    chunkArray[arrayX, arrayY] = value;
-                }
-            }
         }
         public struct LoadedTiles
         {
@@ -138,7 +66,6 @@ namespace Onyxalis.Objects.Worlds
                 {
                     (int cX, int cY) chunk = findChunk(x, y);
                     (int tX, int tY) tileInChunk = (x - chunk.cX * 64, y - chunk.cY * 64);
-                    Tile tile = null;
                     Chunk cChunk = world.loadedChunks[(chunk.cX, chunk.cY)];
                     if (cChunk != null)
                     {
@@ -158,9 +85,6 @@ namespace Onyxalis.Objects.Worlds
         public Random worldRandom;
 
 
-
-
-
         public static World CreateWorld()
         {
             World world = new();
@@ -169,21 +93,10 @@ namespace Onyxalis.Objects.Worlds
             return world;
         }
 
-        public static (int x, int y) findBiomeMapPosition(float X, float Y)
-        {
-            return ((int)MathF.Round((X - 3.5f) / 8f), (int)(MathF.Round((Y - 3.5f) / 8f)));
-        }
         public static (int x, int y) findTilePosition(float X, float Y)
         {
             return ((int)MathF.Round((X - (Tile.tilesize / 2 - 0.5f)) / Tile.tilesize), (int)MathF.Round((Y - (Tile.tilesize / 2 - 0.5f)) / Tile.tilesize));
         }
-
-        public static (int x, int y) findChunkClusterPosition(int X, int Y)
-        {
-            
-            return ((int)MathF.Round((X-7.5f)/16f), (int)(MathF.Round((Y-7.5f) / 16f)));
-        }
-
         public static (int x, int y) findChunk(int X, int Y)
         {
             return ((int)MathF.Round((X - 31.5f) / 64f), (int)(MathF.Round((Y - 31.5f) / 64f))); 
@@ -194,7 +107,6 @@ namespace Onyxalis.Objects.Worlds
         {
             Chunk c = loadedChunks[pos];
             writeChunkFile(c);
-            c.cluster.chunks[c.whatChunkInCluster.x, c.whatChunkInCluster.y] = null;
             loadedChunks.Remove(pos);
         }
 
@@ -231,46 +143,32 @@ namespace Onyxalis.Objects.Worlds
 
         public Chunk LoadChunk(int x, int y)
         {
-            (int X, int Y) = findChunkClusterPosition(x, y);
-
-            ChunkCluster cluster = clusters[X, Y];
-            (int X, int Y) mapPos = findChunkClusterPosition(X, Y);
-            BiomeMap map = biomeMaps[mapPos.X, mapPos.Y];
-            if (map == null) map = CreateBiomeMap(mapPos.X, mapPos.Y);
-            if (cluster == null) cluster = CreateChunkCluster(X, Y, map);
-            int whatChunkX = x - X * 16;
-            int whatChunkY = y - Y * 16;
             Chunk chunk = loadedChunks[(x, y)];
             if (chunk == null) chunk = retrieveChunk(GenerateChunkFilepath((x,y)));
-            if (chunk == null) chunk = cluster.GenerateChunk(whatChunkX, whatChunkY, true);
+            if (chunk == null) chunk = Chunk.CreateChunk(x, y, this, true);
             
             chunk.loaded = true;
             loadedChunks.Add((x, y), chunk);
             return chunk;
         }
-        public BiomeMap CreateBiomeMap(int x, int y)
-        {
-            BiomeMap map = new BiomeMap(this, x ,y);
-            biomeMaps[x, y] = map;
-            return map;
-        }
-        public ChunkCluster CreateChunkCluster(int x, int y, BiomeMap map)
-        {
-            ChunkCluster cluster = new ChunkCluster(this);
-            cluster.world = this;
-            cluster.map = map;
-            cluster.x = x; 
-            cluster.y = y;
-            cluster.grabBiomes();
-            cluster.GenerateHeightMap();
-            clusters[x,y] = cluster;
-            return cluster;
-        }
 
         public void GenerateSeed()
         {
             seed = Environment.TickCount;
+            worldRandom = new Random(seed);
         }
+
+
+        public Biome getBiome(int x, int y)
+        {
+            float biomeTypeNoise = PerlinNoiseGenerator.GeneratePerlinNoise(4, 0.25f, 1f, 1, seed, x);
+            float temperature = PerlinNoiseGenerator.GeneratePerlinNoise(4, 0.25f, 1f, 1, seed, x) * 140 - 40;
+            float amplitude = PerlinNoiseGenerator.GeneratePerlinNoise(4, 0.25f, 1f, 1, seed, x) * 2 + 1;
+
+            Biome biome = new Biome(Biome.GetTerrainType(biomeTypeNoise), temperature, amplitude);
+            return biome;
+        }
+
         public Vector2 GenerateSpawnLocation()
         { 
             Chunk chosenChunk = null;
@@ -282,7 +180,7 @@ namespace Onyxalis.Objects.Worlds
                 }
             }
             int chosenSpot = Game1.GameRandom.Next(64);
-            int Y = ((int)chosenChunk.cluster.heightMap[chosenChunk.whatChunkInCluster.x * 16 + chosenSpot]) + chosenChunk.whatChunkInCluster.y * 64 - 4;
+            int Y = 0; //fix this anyways
             return new Vector2((chosenSpot + chosenChunk.x * 64) * Tile.tilesize, -Y * Tile.tilesize) ;
         }
     }

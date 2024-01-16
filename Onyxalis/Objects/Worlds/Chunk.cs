@@ -23,12 +23,12 @@ namespace Onyxalis.Objects.Worlds
     {
         public Tile[,] tiles = new Tile[64,64];
 
-        public ChunkCluster cluster; // Do not serialize
-        public (int x, int y) whatChunkInCluster;
-
         public HashMap<UUID, LivingCreature> nonPlayers;
 
         public bool surfaceChunk;
+
+
+        public float[] heightMap = new float[64];
 
         public int x;
         public int y;
@@ -37,13 +37,29 @@ namespace Onyxalis.Objects.Worlds
 
         public bool loaded;
         public World world; //Do not serialize
+        public float[] GenerateHeightMap()
+        {
+            float[] perlinNoise = PerlinNoiseGenerator.GeneratePerlinNoise(65, 4, 0.25f, 1f, 1, world.seed, x * 64 - 1);
+            float[] map = new float[65];
+            for (int i = 0; i < 65; i++)
+            {
+                map[i] = (perlinNoise[i] / 1.33203125f) + 32 + y * 64;
+                
+            }
+            for (int i = 0; i < 64; i++)
+            {
+                float dif = map[i + 1] - map[i];
+                (float amp, float freq) = Biome.biomeStats[(int)biome.type];
+                heightMap[i] = map[i] + dif * biome.amplitude * amp;
+            }
 
+            return heightMap;
+        }
         public void GenerateTiles()
         {
-            if (cluster.y == 0) {
                 for (int X = 0; X < 64; X++)
                 {
-                    float height = cluster.heightMap[X + whatChunkInCluster.x * 64] - whatChunkInCluster.y * 64 - cluster.y * 1024;
+                    float height = heightMap[X] - y * 64;
                     for (int Y = 0; Y < height && Y < 64; Y++)
                     {
                         Tile tile = new Tile();
@@ -51,71 +67,50 @@ namespace Onyxalis.Objects.Worlds
                         tile.chunkPos = (X, Y);
                         tile.y = Y + y * 64;
                         if (Y == (int)height && height <= 512) {
-                            tile.Type = (Tile.TileType)cluster.chunkRandom.Next(2);
+                            tile.Type = (Tile.TileType)world.worldRandom.Next(2);
                             tile.rotation = 0;
                         } else if (Y < (int)height - 40)
                         {
                             tile.Type = Tile.TileType.STONE;
-                            tile.rotation = cluster.chunkRandom.Next(4);
+                            tile.rotation = world.worldRandom.Next(4);
 
                         } else if (height > 512)
                         {
                             int heightDif = (int)height - 512;
-                            if (cluster.chunkRandom.NextDouble() / heightDif < 0.05)
+                            if (world.worldRandom.NextDouble() / heightDif < 0.05)
                             {
                                 tile.Type = Tile.TileType.STONE;
-                                tile.rotation = cluster.chunkRandom.Next(4);
+                                tile.rotation = world.worldRandom.Next(4);
                             }
                             else
                             {
-                                tile.Type = (Tile.TileType)cluster.chunkRandom.Next(4) + 2;
-                                tile.rotation = cluster.chunkRandom.Next(4);
+                                tile.Type = (Tile.TileType)world.worldRandom.Next(4) + 2;
+                                tile.rotation = world.worldRandom.Next(4);
                             }
                         }
                         else
                         {
-                            tile.Type = (Tile.TileType)cluster.chunkRandom.Next(4) + 2;
-                            tile.rotation = cluster.chunkRandom.Next(4);
+                            tile.Type = (Tile.TileType)world.worldRandom.Next(4) + 2;
+                            tile.rotation = world.worldRandom.Next(4);
                         }
                         tile.hitbox.Position = new Microsoft.Xna.Framework.Vector2(tile.x * Tile.tilesize, tile.y * Tile.tilesize);
                         tiles[X, Y] = tile;
                     }
-                }
-            } else if (cluster.y < 0)
-            {
-                for (int X = 0; X < 64; X++)
-                {
-                    for (int Y = 0; Y < 64; Y++)
-                    {
-                        Tile tile = new Tile();
-                        tile.x = X + x * 64;
-                        tile.chunkPos = (X, Y);
-                        tile.y = Y + y * 64;
-                        tile.Type = Tile.TileType.STONE;
-                        tile.rotation = cluster.chunkRandom.Next(4);
-                        tile.hitbox.Position = new Microsoft.Xna.Framework.Vector2(tile.x * Tile.tilesize, tile.y * Tile.tilesize);
-                        tiles[X, Y] = tile;
-                    }
-                }
+                
             }
         }
-        
 
 
 
-        
-        public static Chunk CreateChunk(int X, int Y, World world, bool GenerateTiles, bool SurfaceChunk, ChunkCluster cluster)
+
+        public static Chunk CreateChunk(int X, int Y, World world, bool GenerateTiles)
         {
             Chunk newChunk = new Chunk();
-            
-            newChunk.cluster = cluster;
-            newChunk.whatChunkInCluster.x = X;
-            newChunk.whatChunkInCluster.y = Y;
-            newChunk.biome = cluster.biomes[X];
-            newChunk.x = X + cluster.x * 16;
-            newChunk.y = Y + cluster.y * 16;
+
+            newChunk.biome = world.getBiome(X,Y);
+            newChunk.x = X;
+            newChunk.y = Y;
             int seed = world.seed;
-            newChunk.surfaceChunk = SurfaceChunk;
             newChunk.world = world;
             if(GenerateTiles) newChunk.GenerateTiles();
             return newChunk;
