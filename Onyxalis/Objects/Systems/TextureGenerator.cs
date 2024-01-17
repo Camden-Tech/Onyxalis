@@ -1,56 +1,45 @@
 using System;
 using System.Drawing;
 
-class TextureGenerator
+class static TextureGenerator
 {
-    /*static void Main()
-    {
-        // Load base and overlay textures
-        Bitmap baseTexture = new Bitmap("base_texture.png");
-        Bitmap overlayTexture = new Bitmap("overlay_texture.png");
-        if (!AreTexturesSameSize(baseTexture, overlayTexture))
-        {
-            Console.WriteLine("Base and overlay textures must have the same dimensions.");
-            return;
-        }
-
-        // Generate the result texture
-        Bitmap resultTexture = GenerateTexture(baseTexture, overlayTexture);
-
-        // Save the result texture to a new file
-        resultTexture.Save("result_texture.png");
-    }*/
-
-    static bool AreTexturesSameSize(Bitmap texture1, Bitmap texture2)
+    public static bool AreTexturesSameSize(Texture2D texture1, Texture2D texture2)
     {
         return texture1.Width == texture2.Width && texture1.Height == texture2.Height;
     }
 
-    static Bitmap GenerateTexture(Bitmap baseTexture, Bitmap overlayTexture)
+    public static Texture2D GenerateTexture(Texture2D baseTexture, Texture2D overlayTexture)
     {
-        // Create a new bitmap to store the generated result
-        Bitmap resultTexture = new Bitmap(baseTexture.Width, baseTexture.Height);
+        Color[] baseColors = new Color[baseTexture.Width * baseTexture.Height];
+        Color[] overlayColors = new Color[overlayTexture.Width * overlayTexture.Height];
+
+        baseTexture.GetData(baseColors);
+        overlayTexture.GetData(overlayColors);
+
+        // Create a new array to store the generated result
+        Color[] resultColors = new Color[baseColors.Length];
 
         // Loop through each pixel and apply overlay
-        for (int x = 0; x < baseTexture.Width; x++)
+        for (int i = 0; i < baseColors.Length; i++)
         {
-            for (int y = 0; y < baseTexture.Height; y++)
-            {
-                Color baseColor = baseTexture.GetPixel(x, y);
-                Color overlayColor = overlayTexture.GetPixel(x, y);
+            Color baseColor = baseColors[i];
+            Color overlayColor = overlayColors[i];
 
-                // Modify base color using overlay color (you can customize this blending method)
-                Color blendedColor = BlendColors(baseColor, overlayColor);
+            // Modify base color using overlay color (you can customize this blending method)
+            Color blendedColor = BlendColors(baseColor, overlayColor);
 
-                // Set the result color to the new blended color
-                resultTexture.SetPixel(x, y, blendedColor);
-            }
+            // Set the result color to the new blended color
+            resultColors[i] = blendedColor;
         }
+
+        // Create a new Texture2D and set the data
+        Texture2D resultTexture = new Texture2D(GraphicsDevice, baseTexture.Width, baseTexture.Height);
+        resultTexture.SetData(resultColors);
 
         return resultTexture;
     }
 
-    static Color BlendColors(Color baseColor, Color overlayColor)
+    public static Color BlendColors(Color baseColor, Color overlayColor)
     {
         // You can implement your own blending logic here
         // For simplicity, let's just multiply the base color by the overlay color
@@ -58,6 +47,14 @@ class TextureGenerator
         int newGreen = (int)(baseColor.G * overlayColor.G);
         int newBlue = (int)(baseColor.B * overlayColor.B);
 
-        return Color.FromArgb(newRed, newGreen, newBlue);
+        return new Color(newRed, newGreen, newBlue);
+    }
+
+    void static SaveTexture(Texture2D texture, string fileName)
+    {
+        using (FileStream stream = new FileStream(fileName + ".png", FileMode.Create))
+        {
+            texture.SaveAsPng(stream, texture.Width, texture.Height);
+        }
     }
 }
