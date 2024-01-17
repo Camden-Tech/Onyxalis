@@ -34,7 +34,7 @@ namespace Onyxalis.Objects.Systems
                     if (tile != null)
                     {
                         // Serialize each tile's properties
-                        sb.AppendLine($"{tile.x},{tile.y},{tile.rotation},{(int)tile.Type},{tile.chunkPos.chunkX},{tile.chunkPos.chunkY}, {(int)tile.covering}");
+                        sb.AppendLine($"{tile.x},{tile.y},{tile.rotation},{(int)tile.Type},{tile.chunkPos.chunkX},{tile.chunkPos.chunkY}, {(int)tile.covering}, {tile.health}");
                     }
                     else
                     {
@@ -99,7 +99,8 @@ namespace Onyxalis.Objects.Systems
                                 rotation = int.Parse(parts[2]),
                                 Type = (Tile.TileType)int.Parse(parts[3]),
                                 chunkPos = (int.Parse(parts[4]), int.Parse(parts[5])),
-                                covering = (Tile.Covering)int.Parse(parts[6])
+                                covering = (Tile.Covering)int.Parse(parts[6]),
+                                health = int.Parse[parts[7]
                             };
                             tile.hitbox.Position = new Microsoft.Xna.Framework.Vector2(tile.x * Tile.tilesize, tile.y * Tile.tilesize);
                             chunk.tiles[i, j] = tile;
