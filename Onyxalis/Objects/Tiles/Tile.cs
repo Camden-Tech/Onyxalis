@@ -50,7 +50,8 @@ namespace Onyxalis.Objects.Tiles
         {
             Digging,
             Cutting,
-            Crushing
+            Crushing,
+            None,
         }
         
         public enum TileType
@@ -97,8 +98,8 @@ namespace Onyxalis.Objects.Tiles
 
         public enum Covering
         {
-            NONE,
-            MOSS
+            NONE = 0,
+            MOSS = 1
         }
 
         public Tile()
@@ -118,8 +119,8 @@ namespace Onyxalis.Objects.Tiles
         
         
         
-        public bool damageTile(int amount) {
-            health -= amount;
+        public bool damageTile(int amount, DigType type) {
+            health -= amount * (type == digType ? 1.5f : 1);
             if(health <= 0) {
                 return true;
             }
