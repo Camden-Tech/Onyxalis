@@ -52,6 +52,7 @@ namespace Onyxalis.Objects.Worlds
             Exosphere,
             Space,
             Underground,
+            Tunnels,
             Caves,
             Surface,
             GravityDistortionZone
@@ -71,33 +72,34 @@ namespace Onyxalis.Objects.Worlds
             
         }
 
-        public static BiomeType GetBiomeType(float height[]) {
-            float lowestHeight = 0;
+        public static BiomeType GetBiomeType(float[] heights) {
+            float lowestHeight = heights[0];
             BiomeType biomeType;
-            for (int X = 0; X < 64; X++)
+            for (int X = 1; X < 64; X++)
             {
-                float height = heightMap[X] - y * 64;
+                float height = heights[X];
                 if (height < lowestHeight)
                 {
                     lowestHeight = height;
                 }
             }
         
-            if (lowestHeight > 160)
+            if (lowestHeight > 200)
             {
                 biomeType = BiomeType.Underground;
                 
-            } else if (lowestHeight < 160) {
+            }
+            else if (lowestHeight < 160) {
                 biomeType = BiomeType.Space;
             } else {
                 biomeType = BiomeType.Surface;
             }
+            return biomeType;
         }
         
         
-        public Biome(BiomeType type, HorizontalBiomeType horizontalType, float temp, float amp) 
+        public Biome(HorizontalBiomeType horizontalType, float temp, float amp) 
         {
-            this.type = type;
             this.horizontalType = horizontalType;
             temperature = temp;
             amplitude = amp; 

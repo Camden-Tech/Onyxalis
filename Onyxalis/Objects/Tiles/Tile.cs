@@ -18,21 +18,42 @@ namespace Onyxalis.Objects.Tiles
         {
             GRASS = 0,
             GRASS2 = 1,
+
             DIRT1 = 2,
             DIRT2 = 3,
             DIRT3 = 4,
             DIRT4 = 5,
+
             STONE = 6,
-            DEEPROCK = 7,
+
+            DEEPROCK1 = 7,
             DEEPROCK2 = 8,
-            PERMAFROST = 9,
-            SAND = 10,
-            SHRUB = 11,
-            SHORTGRASS = 12,
-            TALLGRASS = 13,
-            SNOW = 14,
-            COPPERDEEPROCK = 15,
-            WOOD = 16
+            DEEPROCK3 = 9,
+            DEEPROCK4 = 10,
+
+            PERMAFROST1 = 11,
+            PERMAFROST2 = 12,
+            PERMAFROST3 = 13,
+            PERMAFROST4 = 14,
+
+            SAND1 = 15,
+            SAND2 = 16,
+            SAND3 = 17,
+            SAND4 = 18,
+
+            SNOW1 = 19,
+            SNOW2 = 20,
+            SNOW3 = 21,
+            SNOW4 = 22,
+
+            SHRUB = 23,
+
+            SHORTGRASS = 24,
+            TALLGRASS = 25,
+            
+            COPPERDEEPROCK = 26,
+
+            WOOD = 27
         }
 
         public enum Covering

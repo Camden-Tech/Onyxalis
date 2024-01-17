@@ -96,10 +96,9 @@ namespace Onyxalis.Objects.Math
 
             for (int octave = 0; octave < octaves; octave++)
             {
-                    float xCoord = start * frequency;
-
-                    float perlinValue = IcariaNoise.GradientNoise(xCoord, 0, seed);
-                    noise += perlinValue * amplitude;
+                float xCoord = start * frequency / 3;
+                float perlinValue = IcariaNoise.GradientNoise(xCoord, 0, seed);
+                noise += perlinValue * amplitude;
                 
 
                 frequency *= 2; // Increase the frequency for the next octave
