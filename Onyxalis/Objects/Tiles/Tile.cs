@@ -115,7 +115,17 @@ namespace Onyxalis.Objects.Tiles
         public (int chunkX, int chunkY) chunkPos;
         public int rotation;
         public TileType Type;
+        
+        
+        
+        public bool damageTile(int amount) {
+            health -= amount;
+            if(health <= 0) {
+                return true;
+            }
+            return false;
+        }
 
-
+    
     }
 }
