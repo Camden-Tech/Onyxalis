@@ -14,6 +14,44 @@ namespace Onyxalis.Objects.Tiles
     public class Tile
     {
         public const int tilesize = 16;
+        public static Dictionary<TileType, (DigType digType, int health)> TileDictionary = new Dictionary<TileType, (DigType digType, int health)>(){
+            {TileType.GRASS, (DigType.Digging, 10)},
+            {TileType.GRASS2, (DigType.Digging, 10)},
+            {TileType.DIRT1, (DigType.Digging, 8)},
+            {TileType.DIRT2, (DigType.Digging, 8)},
+            {TileType.DIRT3, (DigType.Digging, 8)},
+            {TileType.DIRT4, (DigType.Digging, 8},
+            {TileType.STONE, (DigType.Crushing, 15)},
+            {TileType.DEEPROCK1, (DigType.Crushing, 20)},
+            {TileType.DEEPROCK2, (DigType.Crushing, 20)},
+            {TileType.DEEPROCK3, (DigType.Crushing, 20)},
+            {TileType.DEEPROCK4, (DigType.Crushing, 20)},
+            {TileType.PERMAFROST1, (DigType.Digging, 30)},
+            {TileType.PERMAFROST2, (DigType.Digging, 30)},
+            {TileType.PERMAFROST3, (DigType.Digging, 30)},
+            {TileType.PERMAFROST4, (DigType.Digging, 30)},
+            {TileType.SNOW1, (DigType.Digging, 5)},
+            {TileType.SNOW2, (DigType.Digging, 5)},
+            {TileType.SNOW3, (DigType.Digging, 5)},
+            {TileType.SNOW4, (DigType.Digging, 5)},
+            {TileType.SAND1, (DigType.Digging, 8)},
+            {TileType.SAND2, (DigType.Digging, 8)},
+            {TileType.SAND3, (DigType.Digging, 8)},
+            {TileType.SAND4, (DigType.Digging, 8)},
+            {TileType.SHRUB, (DigType.Cutting, 4)},
+            {TileType.SHORTGRASS, (DigType.Cutting, 2)},
+            {TileType.TALLGRASS, (DigType.Cutting, 3)},
+            {TileType.COPPERDEEPROCK, (DigType.Crushing, 35)},
+            {TileType.WOOD, (DigType.Cutting, 10)}
+        }
+        
+        public enum DigType
+        {
+            Digging,
+            Cutting,
+            Crushing
+        }
+        
         public enum TileType
         {
             GRASS = 0,
