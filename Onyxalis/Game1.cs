@@ -24,7 +24,9 @@ namespace Onyxalis
         Player player = new Player();
         Objects.UI.Camera camera = new Objects.UI.Camera();
         GameState state = GameState.Menu;
-        public Dictionary<Tile.TileType, Texture2D> tileTextureDictionary = new Dictionary<Tile.TileType, Texture2D>();
+        public HashMap<Tile.Covering, Dictionary<Tile.TileType, Texture2D>> tileTextureDictionary = new HashMap<int, Dictionary<Tile.TileType, Texture2D>>();
+        public HashMap<Tile.Covering, Texture2D> tileOverlays = new HashMap<Tile.Covering, Texture2D>();
+        
         public Dictionary<Player.PlayerTextures, Texture2D> playerTextureDictionary = new Dictionary<Player.PlayerTextures, Texture2D>();
 
         public enum GameState
@@ -82,34 +84,55 @@ namespace Onyxalis
         protected override void LoadContent()
         {
             _spriteBatch = new SpriteBatch(GraphicsDevice);
-            tileTextureDictionary.Add(Tile.TileType.DIRT1, Content.Load<Texture2D>("Tiles/Dirt"));
-            tileTextureDictionary.Add(Tile.TileType.DIRT2, Content.Load<Texture2D>("Tiles/DirtTwo"));
-            tileTextureDictionary.Add(Tile.TileType.GRASS, Content.Load<Texture2D>("Tiles/Grass"));
-            tileTextureDictionary.Add(Tile.TileType.DIRT3, Content.Load<Texture2D>("Tiles/DirtThree"));
-            tileTextureDictionary.Add(Tile.TileType.GRASS2, Content.Load<Texture2D>("Tiles/GrassTwo"));
-            tileTextureDictionary.Add(Tile.TileType.STONE, Content.Load<Texture2D>("Tiles/Stone"));
-            tileTextureDictionary.Add(Tile.TileType.DEEPROCK1, Content.Load<Texture2D>("Tiles/DeeprockOne"));
-            tileTextureDictionary.Add(Tile.TileType.DEEPROCK2, Content.Load<Texture2D>("Tiles/DeeprockTwo"));
-            tileTextureDictionary.Add(Tile.TileType.DEEPROCK3, Content.Load<Texture2D>("Tiles/DeeprockThree"));
-            tileTextureDictionary.Add(Tile.TileType.DEEPROCK4, Content.Load<Texture2D>("Tiles/DeeprockFour"));
-            tileTextureDictionary.Add(Tile.TileType.PERMAFROST1, Content.Load<Texture2D>("Tiles/PermafrostOne"));
-            tileTextureDictionary.Add(Tile.TileType.PERMAFROST2, Content.Load<Texture2D>("Tiles/PermafrostTwo"));
-            tileTextureDictionary.Add(Tile.TileType.PERMAFROST3, Content.Load<Texture2D>("Tiles/PermafrostThree"));
-            tileTextureDictionary.Add(Tile.TileType.PERMAFROST4, Content.Load<Texture2D>("Tiles/PermafrostFour"));
-            tileTextureDictionary.Add(Tile.TileType.SHORTGRASS, Content.Load<Texture2D>("Tiles/Shortgrass"));
-            tileTextureDictionary.Add(Tile.TileType.TALLGRASS, Content.Load<Texture2D>("Tiles/Tallgrass"));
-            tileTextureDictionary.Add(Tile.TileType.COPPERDEEPROCK, Content.Load<Texture2D>("Tiles/CopperDeeprock"));
-            tileTextureDictionary.Add(Tile.TileType.SNOW1, Content.Load<Texture2D>("Tiles/SnowOne"));
-            tileTextureDictionary.Add(Tile.TileType.SNOW2, Content.Load<Texture2D>("Tiles/SnowTwo"));
-            tileTextureDictionary.Add(Tile.TileType.SNOW3, Content.Load<Texture2D>("Tiles/SnowThree"));
-            tileTextureDictionary.Add(Tile.TileType.SNOW4, Content.Load<Texture2D>("Tiles/SnowFour"));
-            tileTextureDictionary.Add(Tile.TileType.SAND1, Content.Load<Texture2D>("Tiles/SandOne"));
-            tileTextureDictionary.Add(Tile.TileType.SAND2, Content.Load<Texture2D>("Tiles/SandTwo"));
-            tileTextureDictionary.Add(Tile.TileType.SAND3, Content.Load<Texture2D>("Tiles/SandThree"));
-            tileTextureDictionary.Add(Tile.TileType.SAND4, Content.Load<Texture2D>("Tiles/SandFour"));
-            tileTextureDictionary.Add(Tile.TileType.SHRUB, Content.Load<Texture2D>("Tiles/Shrub"));
+            Dictionary<Tile.TileType, Texture2D> dictionaryDefault = new Dictionary<Tile.TileType, Texture2D>();
+            dictionaryDefault.Add(Tile.TileType.DIRT1, Content.Load<Texture2D>("Tiles/Dirt"));
+            dictionaryDefault.Add(Tile.TileType.DIRT2, Content.Load<Texture2D>("Tiles/DirtTwo"));
+            dictionaryDefault.Add(Tile.TileType.GRASS, Content.Load<Texture2D>("Tiles/Grass"));
+            dictionaryDefault.Add(Tile.TileType.DIRT3, Content.Load<Texture2D>("Tiles/DirtThree"));
+            dictionaryDefault.Add(Tile.TileType.GRASS2, Content.Load<Texture2D>("Tiles/GrassTwo"));
+            dictionaryDefault.Add(Tile.TileType.STONE, Content.Load<Texture2D>("Tiles/Stone"));
+            dictionaryDefault.Add(Tile.TileType.DEEPROCK1, Content.Load<Texture2D>("Tiles/DeeprockOne"));
+            dictionaryDefault.Add(Tile.TileType.DEEPROCK2, Content.Load<Texture2D>("Tiles/DeeprockTwo"));
+            dictionaryDefault.Add(Tile.TileType.DEEPROCK3, Content.Load<Texture2D>("Tiles/DeeprockThree"));
+            dictionaryDefault.Add(Tile.TileType.DEEPROCK4, Content.Load<Texture2D>("Tiles/DeeprockFour"));
+            dictionaryDefault.Add(Tile.TileType.PERMAFROST1, Content.Load<Texture2D>("Tiles/PermafrostOne"));
+            dictionaryDefault.Add(Tile.TileType.PERMAFROST2, Content.Load<Texture2D>("Tiles/PermafrostTwo"));
+            dictionaryDefault.Add(Tile.TileType.PERMAFROST3, Content.Load<Texture2D>("Tiles/PermafrostThree"));
+            dictionaryDefault.Add(Tile.TileType.PERMAFROST4, Content.Load<Texture2D>("Tiles/PermafrostFour"));
+            dictionaryDefault.Add(Tile.TileType.SHORTGRASS, Content.Load<Texture2D>("Tiles/Shortgrass"));
+            dictionaryDefault.Add(Tile.TileType.TALLGRASS, Content.Load<Texture2D>("Tiles/Tallgrass"));
+            dictionaryDefault.Add(Tile.TileType.COPPERDEEPROCK, Content.Load<Texture2D>("Tiles/CopperDeeprock"));
+            dictionaryDefault.Add(Tile.TileType.SNOW1, Content.Load<Texture2D>("Tiles/SnowOne"));
+            dictionaryDefault.Add(Tile.TileType.SNOW2, Content.Load<Texture2D>("Tiles/SnowTwo"));
+            dictionaryDefault.Add(Tile.TileType.SNOW3, Content.Load<Texture2D>("Tiles/SnowThree"));
+            dictionaryDefault.Add(Tile.TileType.SNOW4, Content.Load<Texture2D>("Tiles/SnowFour"));
+            dictionaryDefault.Add(Tile.TileType.SAND1, Content.Load<Texture2D>("Tiles/SandOne"));
+            dictionaryDefault.Add(Tile.TileType.SAND2, Content.Load<Texture2D>("Tiles/SandTwo"));
+            dictionaryDefault.Add(Tile.TileType.SAND3, Content.Load<Texture2D>("Tiles/SandThree"));
+            dictionaryDefault.Add(Tile.TileType.SAND4, Content.Load<Texture2D>("Tiles/SandFour"));
+            dictionaryDefault.Add(Tile.TileType.SHRUB, Content.Load<Texture2D>("Tiles/Shrub"));
             playerTextureDictionary.Add(Player.PlayerTextures.Body, Content.Load<Texture2D>("Player/BeautifulPlayerCharacter"));
-            tileTextureDictionary.Add(Tile.TileType.DIRT4, Content.Load<Texture2D>("Tiles/DirtFour"));
+            dictionaryDefault.Add(Tile.TileType.DIRT4, Content.Load<Texture2D>("Tiles/DirtFour"));
+            
+            tileOverlays[Tile.Covering.Moss] = Content.Load<Texture2D>("Overlays/Moss");
+            foreach(Tile.Covering covering : tileOverlays.Keys) {
+                if(covering != Tile.Covering.None){
+                    Dictionary<Tile.TileType, Texture2D> newDictionary = new Dictionary<Tile.TileType, Texture2D>();
+                    Texture2D overlay = tileOverlays[covering];
+                    foreach(Tile.TileType type : dictionaryDefault.Keys){
+                        Texture2D texture = dictionaryDefault[type];
+                        if(TextureGenerator.AreTexturesSameSize(overlay, texture))
+                        {
+                            newDictionary[type] = TextureGenerator.GenerateTexture(texture, overlay);
+                        }
+                    }
+                    tileTextureDictionary[covering] = newDictionary;
+                } else {
+                    tileTextureDictionary[Tile.Covering.None] = dictionaryDefault;
+                }
+                
+            }
+            
             // TODO: use this.Content to load your game content here
             Texture2D texture = playerTextureDictionary[Player.PlayerTextures.Body];
             player.hitbox = new Hitbox(new Vector2[] { new Vector2(0,0), new Vector2(texture.Width, 0), new Vector2(texture.Width, -texture.Height), new Vector2(0, -texture.Height) }, player.position, 2);
@@ -182,9 +205,12 @@ namespace Onyxalis
                             Vector2 pos = new Vector2(tile.x * Tile.tilesize - camera.position.X, tile.y * -Tile.tilesize + camera.position.Y);
                             if (pos.X > -Tile.tilesize && pos.X < 1980 + Tile.tilesize && pos.Y > -Tile.tilesize && pos.Y < 1080 + Tile.tilesize)
                             {
-                                Texture2D tileTexture = tileTextureDictionary.GetValueOrDefault(tile.Type);
+                                Texture2D tileTexture = tileTextureDictionary.GetValueOrDefault(tile.Covering)[tile.Type];
+                                if(tileTexture == null){
+                                    tileTexture = tileTextureDictionary.GetValueOrDefault(Tile.Covering.None)[tile.Type];
+                                }
                                 Vector2 origin = new Vector2(tileTexture.Width / 2f, tileTexture.Height / 2f);
-
+                            
                                 _spriteBatch.Draw(tileTexture, pos, null, Color.White, MathHelper.ToRadians(90 * tile.rotation), origin, 2, SpriteEffects.None, 0);
 
                             }
