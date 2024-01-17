@@ -26,7 +26,7 @@ namespace Onyxalis.Objects.Worlds
 
         public HashMap<UUID, LivingCreature> nonPlayers;
         
-
+        public float[,] mossMap = new float[64,64];
         public float[] heightMap = new float[64];
         public (int x, int y, int radius)[] cavePoints;
         public int x;
@@ -50,6 +50,19 @@ namespace Onyxalis.Objects.Worlds
 
             return heightMap;
         }
+        public static float[,] GenerateMossMap(int x, int y, World world)
+        {
+            public float[,] mossMap = new float[64,64];
+            for (int X = 0; X < 64; X++)
+            {
+                for (int Y = 0; Y < 64; Y++)
+                {
+                    mossMap[i] = (PerlinNoiseGenerator.GeneratePerlinNoise2D(x * 64 + X, y * 64 + Y, 4, 0.25f, 3f, 1, world.seed)  / 1.33203125f);
+                }
+            }
+
+            return mossMap;
+        }
 
         public static (int x, int y, int radius)[] GenerateCavePoints(int x, int y, World world, int maxAmount)
             {
@@ -68,6 +81,12 @@ namespace Onyxalis.Objects.Worlds
             }
         }
 
+        public Tile.Covering GenerateMoss(int X, int Y) {
+            if(mossMap[X,Y] > 0.7f) {
+                return Tile.Covering.Moss;
+            }
+            return Tile.Covering.None;
+        }
 
         private Tile GenerateTile(int X, int Y)
         {
@@ -76,14 +95,14 @@ namespace Onyxalis.Objects.Worlds
                 x = X + x * 64,
                 chunkPos = (X, Y),
                 y = Y + y * 64
-                
-        };
+                covering = Tile.Covering.None;
+            };
             tile.hitbox.Position = new Microsoft.Xna.Framework.Vector2(tile.x * Tile.tilesize, tile.y * Tile.tilesize);
             float height = heightMap[X];
             bool freezing = biome.temperature < 0;
             bool hot = biome.temperature > 90;
+            bool mossHospitable = (biome.temperature > 20 && biome.temperature < 80);
             bool matchesHeight = Y == (int)height;
-            bool rightAboveHeight = Y == (int)height + 1;
             bool belowHeightMap = height - Y <= 0;
             if (!belowHeightMap)
             {
@@ -114,6 +133,10 @@ namespace Onyxalis.Objects.Worlds
                     if (Y < (int)height - 160)
                     {
                         tile = GenerateDeepRock(tile);
+                        if(mossHospitable) {
+                            tile.Covering = GenerateMoss(X,Y);
+                            
+                        }
                         return tile;
                     }
                     tile = freezing ? GeneratePermafrost(tile) : GenerateStone(tile);
@@ -142,25 +165,10 @@ namespace Onyxalis.Objects.Worlds
 
                 tile = hot ? GenerateSand(tile) : GenerateDirt(tile);
                 return tile;
-            } else
-            {
-                if (rightAboveHeight && height < 75)
-                {
-                    if (!freezing && !hot)
-                    {
-                        tile = GenerateGrass(tile);
-                        return tile;
-                    }
-                    if (freezing && world.worldRandom.Next(11) >= 9)
-                    {
-                        tile.Type = Tile.TileType.SHRUB;
-                        tile.rotation = 0;
-                        return tile;
-                    }
-                }
             }
           return null;
         }
+
 
         public Tile.TileType getTileTypeBetweenTileTypes(Tile.TileType first, Tile.TileType last)
         {
@@ -218,24 +226,82 @@ namespace Onyxalis.Objects.Worlds
         {
             tile.Type = getTileTypeBetweenTileTypes(Tile.TileType.DEEPROCK1, Tile.TileType.DEEPROCK4);
             tile.rotation = world.worldRandom.Next(4);
+            
             return tile;
+        }
+
+        public Tile GenerateFoilage(int X,int Y, float height){
+            bool freezing = biome.temperature < 0;
+            bool hot = biome.temperature > 90;
+            
+            
+            
+            Tile tile = new Tile
+            {
+                x = X + x * 64,
+                chunkPos = (X, Y),
+                y = Y + y * 64
+                covering = Tile.Covering.None;
+            };
+            
+            
+            if (height < 75)
+            {
+                
+                if (!freezing && !hot)
+                {
+                    tile = GenerateGrass(tile);
+                    return tile;
+                    
+                }
+                if (freezing && world.worldRandom.Next(11) >= 9)
+                {
+                    tile.Type = Tile.TileType.SHRUB;
+                    tile.rotation = 0;
+                    return tile;
+                }
+            }
+            return null;
+            
         }
 
         public void GenerateTiles()
         {
-            
-        
             for (int X = 0; X < 64; X++)
             {
                 for (int Y = 0; Y < 64; Y++)
                 {
                     Tile tile = GenerateTile(X, Y);
+                    if(tile != null){
+                        (Tile.DigType type, int health) = Tile.TileDictionary[tile.type];
+                        tile.health = health;
+                        tile.digType = type;
+                        tiles[X, Y] = tile;
+                    }
+                }
+            }
+
+            //Foliage
+            int tooClose = 0;
+            for(int X = 0; X < 64; X++){
+                if(tooClose > 0){
+                    tooClose--;
+                    continue;
+                }
+                int Y = height + 1;
+                float height = heightMap[X];
+                Tile tile = GenerateFoliage(X, Y, height);
+                if(tile != null){
                     (Tile.DigType type, int health) = Tile.TileDictionary[tile.type];
                     tile.health = health;
                     tile.digType = type;
+                    tooClose = 5;
                     tiles[X, Y] = tile;
                 }
+                
             }
+
+            //Caves
             for (int Xs = -1; Xs < 2; Xs++)
             {
                 for (int Ys = -1; Ys < 2; Ys++)
@@ -298,6 +364,7 @@ namespace Onyxalis.Objects.Worlds
             newChunk.y = Y;
             newChunk.world = world;
             newChunk.biome = world.getBiome(X, Y);
+            newChunk.mossMap = GenerateMossMap(X, Y);
             newChunk.heightMap = GenerateHeightMap(X, Y, world);
             newChunk.biome.type = Biome.GetBiomeType(newChunk.heightMap);
             newChunk.cavePoints = GenerateCavePoints(X, Y, world, newChunk.GetMaxAmount(newChunk.biome.type));
