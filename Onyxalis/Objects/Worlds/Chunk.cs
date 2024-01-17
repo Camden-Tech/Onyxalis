@@ -230,7 +230,7 @@ namespace Onyxalis.Objects.Worlds
                 for (int Y = 0; Y < 64; Y++)
                 {
                     Tile tile = GenerateTile(X, Y);
-                    (Tile.DigType type, int health) = Tile.TileDictionary.get(tile.type);
+                    (Tile.DigType type, int health) = Tile.TileDictionary[tile.type];
                     tile.health = health;
                     tile.digType = type;
                     tiles[X, Y] = tile;
