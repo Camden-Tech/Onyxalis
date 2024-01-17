@@ -102,6 +102,8 @@ namespace Onyxalis.Objects.Systems
                                 covering = (Tile.Covering)int.Parse(parts[6]),
                                 health = int.Parse[parts[7]
                             };
+                            (Tile.DigType digType, int health) = Tile.TileDictionary[tile.Type];
+                            tile.digType = digType;
                             tile.hitbox.Position = new Microsoft.Xna.Framework.Vector2(tile.x * Tile.tilesize, tile.y * Tile.tilesize);
                             chunk.tiles[i, j] = tile;
                         }
