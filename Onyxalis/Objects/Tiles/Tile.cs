@@ -14,6 +14,7 @@ namespace Onyxalis.Objects.Tiles
     public class Tile
     {
         public const int tilesize = 16;
+        
         public static Dictionary<TileType, (DigType digType, int health)> TileDictionary = new Dictionary<TileType, (DigType digType, int health)>(){
             {TileType.GRASS, (DigType.Digging, 10)},
             {TileType.GRASS2, (DigType.Digging, 10)},
@@ -107,6 +108,7 @@ namespace Onyxalis.Objects.Tiles
         //Each tile is 8x8
         public int health;
         public Hitbox hitbox;
+        public DigType digType;
         public int x;
         public Covering covering;
         public int y;
