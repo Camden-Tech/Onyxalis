@@ -36,14 +36,6 @@ namespace Onyxalis.Objects.Worlds
         public BiomeType type;
         public HorizontalBiomeType horizontalType;
 
-        public static Dictionary<int, (float amp, float frequency)> biomeStats = new Dictionary<int, (float amp, float frequency)>()
-        {
-            {0, (1,1)},
-            {1, (10,0.15f)},
-            {2, (20,0.30f)},
-            {3, (300, 1)}, // no frequency greater than 1
-        };
-        
         public enum BiomeType
         {
             

@@ -1,6 +1,8 @@
 ﻿using Icaria.Engine.Procedural;
 using Lucene.Net.Search;
 using Lucene.Net.Support;
+using Maybe.SkipList;
+using Microsoft.Xna.Framework.Graphics;
 using MiNET.Effects;
 using MiNET.Net;
 using MiNET.Utils;
@@ -29,7 +31,7 @@ namespace Onyxalis.Objects.Worlds
         
         public float[,] mossMap = new float[64,64];
         public float[] heightMap = new float[64];
-        public (int x, int y, int radius)[] cavePoints;
+        public float[,] caveMap = new float[64, 64];
         public int x;
         public int y;
 
@@ -54,6 +56,7 @@ namespace Onyxalis.Objects.Worlds
 
 
 
+
         public static float[,] GenerateMossMap(int x, int y, World world)
         {
             float[,] mossmap = new float[64, 64];
@@ -68,28 +71,26 @@ namespace Onyxalis.Objects.Worlds
             return mossmap;
         }
 
-        public static (int x, int y, int radius)[] GenerateCavePoints(int x, int y, World world, int maxAmount)
-        {
-            if (maxAmount > 0) {
-                (int x, int y, int radius)[] cavePoints;
-                Random cavePointRandom = new Random(world.seed + new Random(x).Next(4000) + new Random(y).Next(4000));
-                int size = cavePointRandom.Next(maxAmount - 1) + 1;
-                cavePoints = new (int x, int y, int radius)[size];
-                for (int i = 0; i < size; i++) {
-                    cavePoints[i] = (cavePointRandom.Next(64), cavePointRandom.Next(64), cavePointRandom.Next(15) + 5);
-                }
-                return cavePoints;
-            } else
-            {
-                return new (int x, int y, int radius)[] { (0, 0, -1) };
-            }
-        }
 
         public Tile.Covering GenerateMoss(int X, int Y) {
             if(mossMap[X,Y] > 0.7f) {
                 return Tile.Covering.MOSS;
             }
             return Tile.Covering.NONE;
+        }
+
+        public static bool canGenerateTile(int Y, float height, float caveNoise)
+        {
+            float adjustedNoiseGap = 0;
+            if (Y <= height) {
+                if (height + 1 - Y < 1) adjustedNoiseGap = 0.075f;
+                else adjustedNoiseGap = 0.075f / (height + 1 - Y);
+                if (!(caveNoise > 0.2 + adjustedNoiseGap) || !(caveNoise < 0.4 - adjustedNoiseGap))
+                {
+                    return true;
+                }
+            }
+            return false;
         }
 
         private Tile GenerateTile(int X, int Y)
@@ -109,66 +110,77 @@ namespace Onyxalis.Objects.Worlds
             bool mossHospitable = (biome.temperature > 20 && biome.temperature < 80);
             bool matchesHeight = Y == (int)height;
             bool belowHeightMap = height - Y <= 0;
-            if (!belowHeightMap)
-            {
-                if (height <= 75)
-                {
+            float noise = caveMap[X, Y];
+            int adjustedY = y * 64 + Y;
+            float adjustedNoiseGap = 0;
+            float diff = height + y * 64 - adjustedY;
+            if(diff > 120) adjustedNoiseGap = 0;
+            else adjustedNoiseGap = 0.08f * (1 - diff / 120);
 
-                    if (matchesHeight)
+            if (!(noise > 0.4 + adjustedNoiseGap) || !(noise < 0.6 - adjustedNoiseGap))
+            {
+                if (!belowHeightMap)
+                {
+                    if (height <= 75)
                     {
-                        if (!freezing && !hot)
+
+                        if (matchesHeight)
                         {
-                            tile.Type = Tile.TileType.GRASS;
-                            tile.rotation = 0;
+                            if (!freezing && !hot)
+                            {
+                                tile.Type = Tile.TileType.GRASS;
+                                tile.rotation = 0;
+                                return tile;
+                            }
+
+                            if (freezing)
+                            {
+                                tile = GenerateSnow(tile);
+                                return tile;
+                            }
+                            tile = GenerateSand(tile);
+                            return tile;
+
+                        }
+                    }
+                    if (Y < (int)height - 40)
+                    {
+                        if (Y < (int)height - 160)
+                        {
+                            tile = GenerateDeepRock(tile);
+                            if (mossHospitable)
+                            {
+                                tile.covering = GenerateMoss(X, Y);
+                            }
                             return tile;
                         }
-                        
-                        if (freezing)
+                        tile = freezing ? GeneratePermafrost(tile) : GenerateStone(tile);
+                        return tile;
+                    }
+                    int dif = (int)(height + y * 64);
+                    if (height + y * 64 > 75)
+                    {
+                        if (matchesHeight)
                         {
                             tile = GenerateSnow(tile);
                             return tile;
                         }
-                        tile = GenerateSand(tile);
-                        return tile;
-                        
-                    }
-                }
-                if (Y < (int)height - 40)
-                {
-                    if (Y < (int)height - 160)
-                    {
-                        tile = GenerateDeepRock(tile);
-                        if(mossHospitable) {
-                            tile.covering = GenerateMoss(X,Y);
+
+                        if (world.worldRandom.NextDouble() / (dif - 75) < 0.05)
+                        {
+                            tile = GenerateStone(tile);
+                            return tile;
                         }
+
+                        tile = GenerateDirt(tile);
                         return tile;
+
                     }
-                    tile = freezing ? GeneratePermafrost(tile) : GenerateStone(tile);
+
+
+                    tile = hot ? GenerateSand(tile) : GenerateDirt(tile);
                     return tile;
                 }
-                int dif = (int)(height + y * 64);
-                if (height + y * 64 > 75)
-                {
-                    if (matchesHeight)
-                    {
-                        tile = GenerateSnow(tile);
-                        return tile;
-                    }
-                    
-                    if (world.worldRandom.NextDouble() / (dif - 75) < 0.05)
-                    {
-                        tile = GenerateStone(tile);
-                        return tile;
-                    }
-
-                    tile = GenerateDirt(tile);
-                    return tile;
-                    
-                }
-
-
-                tile = hot ? GenerateSand(tile) : GenerateDirt(tile);
-                return tile;
             }
           return null;
         }
@@ -284,10 +296,12 @@ namespace Onyxalis.Objects.Worlds
                     }
                 }
             }
-
             //Foliage
             int tooClose = 0;
-            for(int X = 0; X < 64; X++){
+
+            float[,] caveMap = GenerateCaveMap(x, y - 1, world);
+
+            for (int X = 0; X < 64; X++){
                 if(tooClose > 0){
                     tooClose--;
                     continue;
@@ -296,6 +310,13 @@ namespace Onyxalis.Objects.Worlds
                 float height = heightMap[X];
                 int Y = (int)height + 1;
                 if (Y >= 0 && Y < 64) {
+                    if (Y == 0)
+                    {
+                        if (!canGenerateTile(Y - 1, height - 1, caveMap[X, 64])) continue;
+                    } else
+                    {
+                        if (tiles[X, Y - 1] == null) continue;
+                    }
                     Tile tile = GenerateFoliage(X, Y, height);
                     if (tile != null) {
                         (Tile.DigType type, int health) = Tile.TileDictionary[tile.Type];
@@ -307,52 +328,23 @@ namespace Onyxalis.Objects.Worlds
                 }
             }
 
-            //Caves
-            for (int Xs = -1; Xs < 2; Xs++)
-            {
-                for (int Ys = -1; Ys < 2; Ys++)
-                {
-                    (int x, int y, int radius) oldPoint = (0,0,-1);
-                    (int x, int y, int radius)[] points = GenerateCavePoints(Xs + x, Ys + y, world, GetMaxAmount(Biome.GetBiomeType(GenerateHeightMap(Xs + x, Ys + y, world))));
-                    for (int i = 0; i < points.Length; i++)
-                    {
-                        (int x, int y, int radius) point = points[i];
-                        if (oldPoint != (0,0,-1)) {
-                            int lineX = point.x - oldPoint.x;
-                            int lineY = point.y - oldPoint.y;
-                            float lineDist = MathF.Sqrt(MathF.Pow(lineX, 2) + MathF.Pow(lineY, 2));
-                            for (int lineI = 0; lineI < lineDist; lineI++) {
-                                for (int x = -point.radius; x < point.radius; x++) //Circle
-                                {
-                                    int adjustedX = x + point.x + Xs * 64 + (int)(lineX * lineI / lineDist);
-
-                                    if (adjustedX > -1 && adjustedX < 64)
-                                    {
-                                        for (int y = -point.radius; y < point.radius; y++)
-                                        {
-                                            float divident = lineI / lineDist;
-                                            int adjustedY = y + point.y + Ys * 64 + (int)(lineY * divident) - (int)(5 * divident);
-                                            if (adjustedY > -1 && adjustedY < 64)
-                                            {
-                                                float distance = MathF.Sqrt(MathF.Pow(x, 2) + MathF.Pow(y, 2));
-                                                if (distance <= point.radius)
-                                                {
-                                                    tiles[adjustedX, adjustedY] = null;
-                                                }
-                                            }
-
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                        oldPoint = point;
-                    }
-                }
-                
-            }
-            
         }
+
+
+        public static float[,] GenerateCaveMap(int x, int y, World world)
+        {
+            float[,] cavemap = new float[64, 64];
+            for (int X = 0; X < 64; X++)
+            {
+                for (int Y = 0; Y < 64; Y++)
+                {
+                    cavemap[X, Y] = (PerlinNoiseGenerator.Generate2DPerlinNoise(x * 64 + X, y * 64 + Y, 4, 0.25f, 0.01f, 1f, world.seed) / 1.33203125f) + 0.5f;
+                }
+            }
+
+            return cavemap;
+        }
+
 
         public int GetMaxAmount(Biome.BiomeType biome){
             int amount = 0;
@@ -374,9 +366,9 @@ namespace Onyxalis.Objects.Worlds
             newChunk.world = world;
             newChunk.biome = world.getBiome(X, Y);
             newChunk.mossMap = GenerateMossMap(X, Y, world);
+            newChunk.caveMap = GenerateCaveMap(X, Y, world);
             newChunk.heightMap = GenerateHeightMap(X, Y, world);
             newChunk.biome.type = Biome.GetBiomeType(newChunk.heightMap);
-            newChunk.cavePoints = GenerateCavePoints(X, Y, world, newChunk.GetMaxAmount(newChunk.biome.type));
             int seed = world.seed;
            
             if(GenerateTiles) newChunk.GenerateTiles();
