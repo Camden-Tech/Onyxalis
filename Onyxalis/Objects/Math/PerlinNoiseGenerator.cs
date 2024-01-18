@@ -37,10 +37,10 @@ namespace Onyxalis.Objects.Math
 
             for (int octave = 0; octave < octaves; octave++)
             {
-                float xCoord = startX * frequency;
-                float yCoord = startY * frequency;
+                float xCoord = startX * frequency / 1.1f;
+                float yCoord = startY * frequency / 1.1f;
 
-                float perlinValue = IcariaNoise.GradientNoise(xCoord, yCoord);
+                float perlinValue = IcariaNoise.GradientNoise(xCoord, yCoord, seed);
                 noise += perlinValue * amplitude;
                     
 

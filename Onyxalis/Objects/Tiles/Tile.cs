@@ -14,14 +14,14 @@ namespace Onyxalis.Objects.Tiles
     public class Tile
     {
         public const int tilesize = 16;
-        
+
         public static Dictionary<TileType, (DigType digType, int health)> TileDictionary = new Dictionary<TileType, (DigType digType, int health)>(){
             {TileType.GRASS, (DigType.Digging, 10)},
             {TileType.GRASS2, (DigType.Digging, 10)},
             {TileType.DIRT1, (DigType.Digging, 8)},
             {TileType.DIRT2, (DigType.Digging, 8)},
             {TileType.DIRT3, (DigType.Digging, 8)},
-            {TileType.DIRT4, (DigType.Digging, 8},
+            {TileType.DIRT4, (DigType.Digging, 8)},
             {TileType.STONE, (DigType.Crushing, 15)},
             {TileType.DEEPROCK1, (DigType.Crushing, 20)},
             {TileType.DEEPROCK2, (DigType.Crushing, 20)},
@@ -44,7 +44,7 @@ namespace Onyxalis.Objects.Tiles
             {TileType.TALLGRASS, (DigType.Cutting, 3)},
             {TileType.COPPERDEEPROCK, (DigType.Crushing, 35)},
             {TileType.WOOD, (DigType.Cutting, 10)}
-        }
+        };
         
         public enum DigType
         {
@@ -120,7 +120,7 @@ namespace Onyxalis.Objects.Tiles
         
         
         public bool damageTile(int amount, DigType type) {
-            health -= amount * (type == digType ? 1.5f : 1);
+            health -=  amount * (int)(type == digType ? 1.5f : 1);
             if(health <= 0) {
                 return true;
             }

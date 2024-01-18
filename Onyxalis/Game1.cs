@@ -24,7 +24,7 @@ namespace Onyxalis
         Player player = new Player();
         Objects.UI.Camera camera = new Objects.UI.Camera();
         GameState state = GameState.Menu;
-        public HashMap<Tile.Covering, Dictionary<Tile.TileType, Texture2D>> tileTextureDictionary = new HashMap<int, Dictionary<Tile.TileType, Texture2D>>();
+        public HashMap<Tile.Covering, Dictionary<Tile.TileType, Texture2D>> tileTextureDictionary = new HashMap<Tile.Covering, Dictionary<Tile.TileType, Texture2D>>();
         public HashMap<Tile.Covering, Texture2D> tileOverlays = new HashMap<Tile.Covering, Texture2D>();
         
         public Dictionary<Player.PlayerTextures, Texture2D> playerTextureDictionary = new Dictionary<Player.PlayerTextures, Texture2D>();
@@ -113,22 +113,18 @@ namespace Onyxalis
             dictionaryDefault.Add(Tile.TileType.SHRUB, Content.Load<Texture2D>("Tiles/Shrub"));
             playerTextureDictionary.Add(Player.PlayerTextures.Body, Content.Load<Texture2D>("Player/BeautifulPlayerCharacter"));
             dictionaryDefault.Add(Tile.TileType.DIRT4, Content.Load<Texture2D>("Tiles/DirtFour"));
-            
-            tileOverlays[Tile.Covering.Moss] = Content.Load<Texture2D>("Overlays/Moss");
-            foreach(Tile.Covering covering : tileOverlays.Keys) {
-                if(covering != Tile.Covering.None){
+            tileTextureDictionary[Tile.Covering.NONE] = dictionaryDefault;
+            tileOverlays[Tile.Covering.MOSS] = Content.Load<Texture2D>("Overlays/Moss1");
+            foreach (Tile.Covering covering in tileOverlays.Keys) {
+                if(covering != Tile.Covering.NONE){
                     Dictionary<Tile.TileType, Texture2D> newDictionary = new Dictionary<Tile.TileType, Texture2D>();
                     Texture2D overlay = tileOverlays[covering];
-                    foreach(Tile.TileType type : dictionaryDefault.Keys){
-                        Texture2D texture = dictionaryDefault[type];
-                        if(TextureGenerator.AreTexturesSameSize(overlay, texture))
-                        {
-                            newDictionary[type] = TextureGenerator.GenerateTexture(texture, overlay);
-                        }
+                    foreach(Tile.TileType type in dictionaryDefault.Keys){
+                        Texture2D underlay = dictionaryDefault[type];
+                         newDictionary[type] = TextureGenerator.GenerateTexture(underlay, overlay, _graphics.GraphicsDevice);
+                        
                     }
                     tileTextureDictionary[covering] = newDictionary;
-                } else {
-                    tileTextureDictionary[Tile.Covering.None] = dictionaryDefault;
                 }
                 
             }
@@ -205,9 +201,9 @@ namespace Onyxalis
                             Vector2 pos = new Vector2(tile.x * Tile.tilesize - camera.position.X, tile.y * -Tile.tilesize + camera.position.Y);
                             if (pos.X > -Tile.tilesize && pos.X < 1980 + Tile.tilesize && pos.Y > -Tile.tilesize && pos.Y < 1080 + Tile.tilesize)
                             {
-                                Texture2D tileTexture = tileTextureDictionary.GetValueOrDefault(tile.Covering)[tile.Type];
+                                Texture2D tileTexture = tileTextureDictionary[tile.covering][tile.Type];
                                 if(tileTexture == null){
-                                    tileTexture = tileTextureDictionary.GetValueOrDefault(Tile.Covering.None)[tile.Type];
+                                    tileTexture = tileTextureDictionary[Tile.Covering.NONE][tile.Type];
                                 }
                                 Vector2 origin = new Vector2(tileTexture.Width / 2f, tileTexture.Height / 2f);
                             

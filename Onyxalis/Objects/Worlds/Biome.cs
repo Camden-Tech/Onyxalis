@@ -84,7 +84,7 @@ namespace Onyxalis.Objects.Worlds
                 }
             }
         
-            if (lowestHeight > 200)
+            if (lowestHeight > 300)
             {
                 biomeType = BiomeType.Underground;
                 

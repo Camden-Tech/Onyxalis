@@ -100,7 +100,7 @@ namespace Onyxalis.Objects.Systems
                                 Type = (Tile.TileType)int.Parse(parts[3]),
                                 chunkPos = (int.Parse(parts[4]), int.Parse(parts[5])),
                                 covering = (Tile.Covering)int.Parse(parts[6]),
-                                health = int.Parse[parts[7]
+                                health = int.Parse(parts[7])
                             };
                             (Tile.DigType digType, int health) = Tile.TileDictionary[tile.Type];
                             tile.digType = digType;

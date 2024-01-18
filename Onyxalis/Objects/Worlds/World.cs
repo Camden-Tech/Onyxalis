@@ -173,29 +173,15 @@ namespace Onyxalis.Objects.Worlds
 
         public Vector2 GenerateSpawnLocation()
         { 
-            Chunk chosenChunk = null;
             float height = 0;
             int chosenSpot = 0;
-            for (int x = -5; x < 5; x++)
-            {
-                for (int y = -5; y < 5; y++)
-                {
-                    Chunk chunk = LoadChunk(x, y);
-                    for (int i = 0; i < chunk.heightMap.Length; i++)
-                    {
-                        height = chunk.heightMap[i];
-                        if (height > 0 && height < 64)
-                        {
-                            chosenSpot = i;
-                            chosenChunk = chunk;
-                            break;
-                        }
-                    }
-                }
-            }
+            Chunk chunk = LoadChunk(0, 0);
+                    
+            height = chunk.heightMap[0] - chunk.y * 64 + 8;
+                      
             
             int Y = (int)height; //fix this anyways
-            return new Vector2((chosenSpot + chosenChunk.x * 64) * Tile.tilesize, Y * Tile.tilesize) ;
+            return new Vector2((chosenSpot + chunk.x * 64) * Tile.tilesize, -Y * Tile.tilesize) ;
         }
     }
 }

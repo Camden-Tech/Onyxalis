@@ -7,6 +7,7 @@ using MiNET.Utils;
 using Onyxalis.Objects.Entities;
 using Onyxalis.Objects.Math;
 using Onyxalis.Objects.Tiles;
+using Onyxalis.Objects.Worlds;
 using Org.BouncyCastle.Bcpg;
 using System;
 using System.Collections.Generic;
@@ -50,22 +51,25 @@ namespace Onyxalis.Objects.Worlds
 
             return heightMap;
         }
+
+
+
         public static float[,] GenerateMossMap(int x, int y, World world)
         {
-            public float[,] mossMap = new float[64,64];
+            float[,] mossmap = new float[64, 64];
             for (int X = 0; X < 64; X++)
             {
                 for (int Y = 0; Y < 64; Y++)
                 {
-                    mossMap[i] = (PerlinNoiseGenerator.GeneratePerlinNoise2D(x * 64 + X, y * 64 + Y, 4, 0.25f, 3f, 1, world.seed)  / 1.33203125f);
+                    mossmap[X,Y] = (PerlinNoiseGenerator.Generate2DPerlinNoise(x* 64 + X, y* 64 + Y, 4, 0.25f, 0.04f, 1f, world.seed)  / 1.33203125f) + 0.5f;
                 }
             }
 
-            return mossMap;
+            return mossmap;
         }
 
         public static (int x, int y, int radius)[] GenerateCavePoints(int x, int y, World world, int maxAmount)
-            {
+        {
             if (maxAmount > 0) {
                 (int x, int y, int radius)[] cavePoints;
                 Random cavePointRandom = new Random(world.seed + new Random(x).Next(4000) + new Random(y).Next(4000));
@@ -77,15 +81,15 @@ namespace Onyxalis.Objects.Worlds
                 return cavePoints;
             } else
             {
-                return new (int x, int y, int radius)[] { (0, 0, 0) };
+                return new (int x, int y, int radius)[] { (0, 0, -1) };
             }
         }
 
         public Tile.Covering GenerateMoss(int X, int Y) {
             if(mossMap[X,Y] > 0.7f) {
-                return Tile.Covering.Moss;
+                return Tile.Covering.MOSS;
             }
-            return Tile.Covering.None;
+            return Tile.Covering.NONE;
         }
 
         private Tile GenerateTile(int X, int Y)
@@ -94,9 +98,10 @@ namespace Onyxalis.Objects.Worlds
             {
                 x = X + x * 64,
                 chunkPos = (X, Y),
-                y = Y + y * 64
-                covering = Tile.Covering.None;
+                y = Y + y * 64,
+                covering = Tile.Covering.NONE
             };
+
             tile.hitbox.Position = new Microsoft.Xna.Framework.Vector2(tile.x * Tile.tilesize, tile.y * Tile.tilesize);
             float height = heightMap[X];
             bool freezing = biome.temperature < 0;
@@ -134,8 +139,7 @@ namespace Onyxalis.Objects.Worlds
                     {
                         tile = GenerateDeepRock(tile);
                         if(mossHospitable) {
-                            tile.Covering = GenerateMoss(X,Y);
-                            
+                            tile.covering = GenerateMoss(X,Y);
                         }
                         return tile;
                     }
@@ -230,7 +234,7 @@ namespace Onyxalis.Objects.Worlds
             return tile;
         }
 
-        public Tile GenerateFoilage(int X,int Y, float height){
+        public Tile GenerateFoliage(int X,int Y, float height){
             bool freezing = biome.temperature < 0;
             bool hot = biome.temperature > 90;
             
@@ -240,8 +244,8 @@ namespace Onyxalis.Objects.Worlds
             {
                 x = X + x * 64,
                 chunkPos = (X, Y),
-                y = Y + y * 64
-                covering = Tile.Covering.None;
+                y = Y + y * 64,
+                covering = Tile.Covering.NONE
             };
             
             
@@ -273,7 +277,7 @@ namespace Onyxalis.Objects.Worlds
                 {
                     Tile tile = GenerateTile(X, Y);
                     if(tile != null){
-                        (Tile.DigType type, int health) = Tile.TileDictionary[tile.type];
+                        (Tile.DigType type, int health) = Tile.TileDictionary[tile.Type];
                         tile.health = health;
                         tile.digType = type;
                         tiles[X, Y] = tile;
@@ -288,17 +292,19 @@ namespace Onyxalis.Objects.Worlds
                     tooClose--;
                     continue;
                 }
-                int Y = height + 1;
-                float height = heightMap[X];
-                Tile tile = GenerateFoliage(X, Y, height);
-                if(tile != null){
-                    (Tile.DigType type, int health) = Tile.TileDictionary[tile.type];
-                    tile.health = health;
-                    tile.digType = type;
-                    tooClose = 5;
-                    tiles[X, Y] = tile;
-                }
                 
+                float height = heightMap[X];
+                int Y = (int)height + 1;
+                if (Y >= 0 && Y < 64) {
+                    Tile tile = GenerateFoliage(X, Y, height);
+                    if (tile != null) {
+                        (Tile.DigType type, int health) = Tile.TileDictionary[tile.Type];
+                        tile.health = health;
+                        tile.digType = type;
+                        tooClose = 5;
+                        tiles[X, Y] = tile;
+                    }
+                }
             }
 
             //Caves
@@ -312,8 +318,8 @@ namespace Onyxalis.Objects.Worlds
                     {
                         (int x, int y, int radius) point = points[i];
                         if (oldPoint != (0,0,-1)) {
-                            int lineX = oldPoint.x - point.x;
-                            int lineY = oldPoint.y - point.y;
+                            int lineX = point.x - oldPoint.x;
+                            int lineY = point.y - oldPoint.y;
                             float lineDist = MathF.Sqrt(MathF.Pow(lineX, 2) + MathF.Pow(lineY, 2));
                             for (int lineI = 0; lineI < lineDist; lineI++) {
                                 for (int x = -point.radius; x < point.radius; x++) //Circle
@@ -351,7 +357,10 @@ namespace Onyxalis.Objects.Worlds
         public int GetMaxAmount(Biome.BiomeType biome){
             int amount = 0;
             if(biome == Biome.BiomeType.Underground){
-                amount = 7;
+                amount = 4;
+            } else if (biome == Biome.BiomeType.Surface)
+            {
+                amount = 1;
             }
             return amount;
         }
@@ -364,7 +373,7 @@ namespace Onyxalis.Objects.Worlds
             newChunk.y = Y;
             newChunk.world = world;
             newChunk.biome = world.getBiome(X, Y);
-            newChunk.mossMap = GenerateMossMap(X, Y);
+            newChunk.mossMap = GenerateMossMap(X, Y, world);
             newChunk.heightMap = GenerateHeightMap(X, Y, world);
             newChunk.biome.type = Biome.GetBiomeType(newChunk.heightMap);
             newChunk.cavePoints = GenerateCavePoints(X, Y, world, newChunk.GetMaxAmount(newChunk.biome.type));
@@ -373,6 +382,6 @@ namespace Onyxalis.Objects.Worlds
             if(GenerateTiles) newChunk.GenerateTiles();
             return newChunk;
         }
-        
+
     }
 }
