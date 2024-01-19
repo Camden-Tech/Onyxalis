@@ -11,11 +11,16 @@ using System.Threading.Tasks;
 
 namespace Onyxalis.Objects.Tiles
 {
-    public class Tile
+    public class Tile 
     {
+
+        public Tile()
+        {
+
+        }
         public const int tilesize = 16;
 
-        public static Dictionary<TileType, (DigType digType, int health)> TileDictionary = new Dictionary<TileType, (DigType digType, int health)>(){
+        public static Dictionary<TileType, (DigType digType, int health)> TileDictionary = new Dictionary<TileType, (DigType digType, int health)>(){  //Create json file reader instead
             {TileType.GRASS, (DigType.Digging, 10)},
             {TileType.GRASS2, (DigType.Digging, 10)},
             {TileType.DIRT1, (DigType.Digging, 8)},
@@ -41,7 +46,7 @@ namespace Onyxalis.Objects.Tiles
             {TileType.SAND4, (DigType.Digging, 8)},
             {TileType.SHRUB, (DigType.Cutting, 4)},
             {TileType.SHORTGRASS, (DigType.Cutting, 2)},
-            {TileType.TALLGRASS, (DigType.Cutting, 3)},
+            {TileType.LONGGRASS, (DigType.Cutting, 3)},
             {TileType.COPPERDEEPROCK, (DigType.Crushing, 35)},
             {TileType.WOOD, (DigType.Cutting, 10)}
         };
@@ -86,14 +91,17 @@ namespace Onyxalis.Objects.Tiles
             SNOW3 = 21,
             SNOW4 = 22,
 
-            SHRUB = 23,
-
-            SHORTGRASS = 24,
-            TALLGRASS = 25,
             
-            COPPERDEEPROCK = 26,
+            COPPERDEEPROCK = 23,
 
-            WOOD = 27
+            WOOD = 24,
+
+            TREESTUMP = 25,
+            TREESTALK = 26,
+            TREETOP = 27,
+            SHRUB = 28,
+            SHORTGRASS = 29,
+            LONGGRASS = 30
         }
 
         public enum Covering
@@ -101,20 +109,19 @@ namespace Onyxalis.Objects.Tiles
             NONE = 0,
             MOSS = 1
         }
-
-        public Tile()
-        {
-            hitbox = new Hitbox(new Vector2[] { new Vector2(0, 0), new Vector2(Tile.tilesize, 0), new Vector2(Tile.tilesize, -Tile.tilesize), new Vector2(0, -Tile.tilesize) }, Vector2.Zero, 2);
-        }
+        
         //Each tile is 8x8
         public int health;
-        public Hitbox hitbox;
+        public Hitbox hitbox = new Hitbox(new Vector2[] { new Vector2(0, 0), new Vector2(Tile.tilesize, 0), new Vector2(Tile.tilesize, -Tile.tilesize), new Vector2(0, -Tile.tilesize) }, Vector2.Zero, 2);
         public DigType digType;
         public int x;
         public Covering covering;
         public int y;
+        public bool multiTile = false;
+        public (int x, int y) piecePos = (-1, -1);
+        public (int x, int y) originalPos;
         public (int chunkX, int chunkY) chunkPos;
-        public int rotation;
+        public int rotation = 0;
         public TileType Type;
         
         

@@ -123,8 +123,13 @@ namespace Onyxalis.Objects.Entities
                 }
 
             }
+
             return position;
+        
         }
+
+
+
         public float deltaX, deltaY;  // change in x and y
         public float scale;
         private float currentDistance;
@@ -153,6 +158,8 @@ namespace Onyxalis.Objects.Entities
 
 
         public Vector2 position, oldPos;
+
+        public Hitbox feet;
 
         public static HashMap<UUID, LivingCreature> creatures;
 

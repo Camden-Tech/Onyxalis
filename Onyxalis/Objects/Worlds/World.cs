@@ -1,4 +1,5 @@
 ﻿using Lucene.Net.Support;
+using MiNET.Entities.Hostile;
 using MiNET.Utils;
 using Newtonsoft.Json.Linq;
 using Onyxalis.Objects.Entities;
@@ -79,6 +80,7 @@ namespace Onyxalis.Objects.Worlds
         
 
         public HashMap<(int,int), Chunk> loadedChunks = new HashMap<(int, int), Chunk>();
+        public HashMap<(int, int), PartialChunk> partialChunks = new HashMap<(int, int), PartialChunk>();
         public int time;
         public Weather weather;
         public int seed;
@@ -114,6 +116,10 @@ namespace Onyxalis.Objects.Worlds
         {
             return filePath + "/Chunk_" + c.x + "_" + c.y + ".txt";
         }
+        public string GeneratePartialChunkFilepath((int x, int y) c)
+        {
+            return filePath + "/PartialChunk_" + c.x + "_" + c.y + ".txt";
+        }
 
         public string writeChunkFile(Chunk c)
         {
@@ -140,12 +146,55 @@ namespace Onyxalis.Objects.Worlds
             }
             return null;
         }
+        public static PartialChunk retrievePartialChunk(string filePath)
+        {
+            // Read the Base64 encoded, compressed data from the file
+            if (File.Exists(filePath))
+            {
+                string base64SerializedData = File.ReadAllText(filePath);
+
+                // Use the existing DeserializeChunk method to convert the data back to a Chunk object
+                return ObjectSerializer.DeserializePartialChunk(base64SerializedData);
+            }
+            return null;
+        }
+
+        public string writePartialChunkFile(string filePath, PartialChunk c)
+        {
+            string serializedHex = ObjectSerializer.SerializePartialChunk(c);
+            Directory.CreateDirectory(filePath);
+            string path = GeneratePartialChunkFilepath((c.x, c.y));
+            File.WriteAllText(path, serializedHex);
+            return path;
+        }
+
+        public PartialChunk GetPartialChunk(int x, int y)
+        {
+            PartialChunk chunk = partialChunks[(x, y)];
+            if (chunk == null) chunk = retrievePartialChunk(GeneratePartialChunkFilepath((x, y)));
+            if (chunk == null) chunk = null;
+            return chunk;
+        }
+
+        public Chunk GetChunk(int x, int y)
+        {
+            Chunk chunk = loadedChunks[(x, y)];
+            if (chunk == null) chunk = retrieveChunk(GenerateChunkFilepath((x, y)));
+            if (chunk == null) chunk = Chunk.CreateChunk(x, y, this, true);
+            return chunk;
+        }
+
 
         public Chunk LoadChunk(int x, int y)
         {
-            Chunk chunk = loadedChunks[(x, y)];
-            if (chunk == null) chunk = retrieveChunk(GenerateChunkFilepath((x,y)));
-            if (chunk == null) chunk = Chunk.CreateChunk(x, y, this, true);
+            foreach ((int x, int y) pos in partialChunks.Keys)
+            {
+                PartialChunk partialChunk = partialChunks[pos];
+                writePartialChunkFile(GeneratePartialChunkFilepath((pos.x,pos.y)), partialChunk);
+            }
+            partialChunks.Clear();
+
+            Chunk chunk = GetChunk(x, y);
             
             chunk.loaded = true;
             loadedChunks.Add((x, y), chunk);

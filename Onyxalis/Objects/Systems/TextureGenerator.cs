@@ -67,4 +67,40 @@ public class TextureGenerator
             texture.SaveAsPng(stream, texture.Width, texture.Height);
         }
     }
+    public static Texture2D[,] BreakIntoPieces(Texture2D originalTexture, GraphicsDevice graphicsDevice)
+    {
+        // Size of each piece
+        int pieceWidth = 8;
+        int pieceHeight = 8;
+
+        // Calculate the number of pieces along each dimension
+        int piecesX = originalTexture.Width / pieceWidth;
+        int piecesY = originalTexture.Height / pieceHeight;
+
+        // Initialize the 2D array of textures
+        Texture2D[,] pieces = new Texture2D[piecesX, piecesY];
+
+        // Extract each piece
+        for (int x = 0; x < piecesX; x++)
+        {
+            for (int y = 0; y < piecesY; y++)
+            {
+                // Create a new texture for the piece
+                Texture2D pieceTexture = new Texture2D(graphicsDevice, pieceWidth, pieceHeight);
+
+                // Copy the data from the original texture to the piece
+                Color[] data = new Color[pieceWidth * pieceHeight];
+                originalTexture.GetData(0, new Rectangle(x * pieceWidth, y * pieceHeight, pieceWidth, pieceHeight), data, 0, data.Length);
+                pieceTexture.SetData(data);
+
+                // Store the piece in the array
+                pieces[x, y] = pieceTexture;
+            }
+        }
+
+        return pieces;
+    }
+
+
+
 }
