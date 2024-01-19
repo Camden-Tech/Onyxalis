@@ -126,23 +126,24 @@ namespace Onyxalis.Objects.Worlds
             tile.health = health;
             tile.digType = digType;
             tile.hitbox.Position = new Microsoft.Xna.Framework.Vector2(tile.x * Tile.tilesize, tile.y * Tile.tilesize);
-            try
-            {
-                Texture2D[,] pieces = Game1.multiTilePieces[type];
-                if (pieces != null) {
-                    createMultiTile(x, y, chunkPos, rotation, type, pieces);
-                }
-            }
-            catch (Exception e)
-            { //die
-                setTile(x, y, tile);
-            }
+            
             
             return tile;
         }
 
-        public void createMultiTile(int x, int y, (int x, int y) chunkPos, int rotation, Tile.TileType type, Texture2D[,] parts)
+        public Tile[] createMultiTile(int x, int y, (int x, int y) chunkPos, int rotation, Tile.TileType type)
         {
+            List<Tile> tiles = new List<Tile>();
+            Texture2D[,] parts;
+            try
+            {
+                parts = Game1.multiTilePieces[type];
+            }
+            catch (Exception e)
+            { //die
+                //throw exception
+                return null;
+            }
             for (int X = 0; X < parts.GetLength(0); X++)
             {
                 for (int Y = 0; Y < parts.GetLength(1); Y++)
@@ -165,9 +166,10 @@ namespace Onyxalis.Objects.Worlds
                     tile.health = health;
                     tile.digType = digType;
                     tile.hitbox.Position = new Microsoft.Xna.Framework.Vector2(tile.x * Tile.tilesize, tile.y * Tile.tilesize);
-                    setTile(x + X, y + Y, tile);
+                    tiles.add(tile);
                 }
             }
+            return tiles.ToArray();
         }
 
 
@@ -176,11 +178,6 @@ namespace Onyxalis.Objects.Worlds
         private Tile GenerateTile(int X, int Y)
         {
             float height = heightMap[X];
-            bool freezing = biome.temperature < 0;
-            bool hot = biome.temperature > 90;
-            bool mossHospitable = (biome.temperature > 20 && biome.temperature < 80);
-            bool matchesHeight = Y == (int)height;
-            bool belowHeightMap = height - Y <= 0;
             float noise = caveMap[X, Y]; 
             int adjustedY = y * 64 + Y;
             float adjustedNoiseGap = 0;
@@ -189,13 +186,21 @@ namespace Onyxalis.Objects.Worlds
             else adjustedNoiseGap = 0.08f * (1 - diff / 120);
             Tile tile;
             if (!(noise > 0.4 + adjustedNoiseGap) || !(noise < 0.6 - adjustedNoiseGap))
-            {
+            { //Is not cave empty space?
+                
+                bool freezing = biome.temperature < 0;
+                bool hot = biome.temperature > 90;
+                
+                int intHeight = (int)height
+                
+                bool belowHeightMap = height - Y <= 0;
                 if (!belowHeightMap)
-                {
-                    if (height <= 75)
+                { // If it is below the height
+                    bool matchesHeight = Y == intHeight;
+                    if (matchesHeight)
                     {
 
-                        if (matchesHeight)
+                        if (height <= 75f)
                         {
                             if (!freezing && !hot)
                             {
@@ -212,11 +217,12 @@ namespace Onyxalis.Objects.Worlds
 
                         }
                     }
-                    if (Y < (int)height - 40)
+                    if (Y < intHeight - 40)
                     {
-                        if (Y < (int)height - 160)
+                        if (Y < intHeight - 160)
                         {
                             tile = GenerateDeepRock(x, y);
+                            bool mossHospitable = (biome.temperature > 20 && biome.temperature < 80);
                             if (mossHospitable)
                             {
                                 tile.covering = GenerateMoss(X, Y);
@@ -226,8 +232,8 @@ namespace Onyxalis.Objects.Worlds
                         tile = freezing ? GeneratePermafrost(x, y) : GenerateStone(x, y);
                         return tile;
                     }
-                    int dif = (int)(height + y * 64);
-                    if (height + y * 64 > 75)
+                    int dif = intHeight + y * 64;
+                    if (intHeight + y * 64 > 75)
                     {
                         if (matchesHeight)
                         {
@@ -261,14 +267,14 @@ namespace Onyxalis.Objects.Worlds
             return first + rand;
         }
 
-        public Tile GenerateGrass(int X, int Y)
+        public Tile[] GenerateGrass(int X, int Y)
         {
             if (world.worldRandom.Next(5) > 3)
             {
                 Tile.TileType type = getTileTypeBetweenTileTypes(Tile.TileType.SHORTGRASS, Tile.TileType.LONGGRASS);
                 int rotation = 0;
-                Tile tile = createTile(X, Y, (x, y), rotation, type);
-                return tile;
+                Tile[] tiles = createMultiTile(X, Y, (x, y), rotation, type);
+                return tiles;
             }
             return null;
             
@@ -321,21 +327,21 @@ namespace Onyxalis.Objects.Worlds
             return tile;
         }
 
-        public Tile GenerateFoliage(int X,int Y, float height){
+        public Tile[] GenerateFoliage(int X,int Y, float height){
             bool freezing = biome.temperature < 0;
             bool hot = biome.temperature > 90;
-            Tile tile;
-            if (height < 75)
+            Tile[] tiles;
+            if (height < 75f)
             {
                 if (!freezing && !hot)
                 {
-                    tile = GenerateGrass(X,Y);
+                    tiles = GenerateGrass(X,Y);
                     return tile;
                 }
                 if (freezing && world.worldRandom.Next(11) >= 9)
                 {
-                    tile = createTile(X, Y, (x, y), 0, Tile.TileType.SHRUB);
-                    return tile;
+                    tiles = createMultiTile(X, Y, (x, y), 0, Tile.TileType.SHRUB);
+                    return tiles;
                 }
             }
             return null;
@@ -358,7 +364,7 @@ namespace Onyxalis.Objects.Worlds
                     if (tile != null)
                     {
 
-                        setTile(X, Y, tile);
+                        setTile(tile.x, tile.y, tile);
                     }
                 }
             }
@@ -386,11 +392,14 @@ namespace Onyxalis.Objects.Worlds
                     {
                         if (tiles[X, Y - 1] == null) continue;
                     }
-                    Tile tile = GenerateFoliage(X, Y, height);
-                    if (tile != null)
+                    Tile[] tileArray = GenerateFoliage(X, Y, height);
+                    if (tileArray != null)
                     {
                         tooClose = 5;
-                        setTile(X,Y, tile);
+                        foreach (Tile tile in tileArray){
+                            setTile(tile.x,tile.y, tile);
+                        }
+                        
                     }
                 }
             }
@@ -461,20 +470,22 @@ namespace Onyxalis.Objects.Worlds
         }
 
 
-        public void setTile(int x, int y, Tile tile)
+        public void setTile(int X, int Y, Tile tile)
         {
             (int x, int y) pos = (0,0);
-            if(x > 63 || x < 0 || y > 63 || y < 0){
-                pos = World.findChunk(x, y);
+            int adjX = X + x * 64;
+            int adjY = Y + y * 64;
+            if(X > adjX + 63 || X < adjX || Y > 63 + adjY || Y < adjY){
+                pos = World.findChunk(adjX, adjy);
             }
             if (pos != (0,0))
             {
-                PartialChunk partialChunk = world.GetPartialChunk(pos.x + this.x, pos.y + this.y);
+                PartialChunk partialChunk = world.GetPartialChunk(pos.x, pos.y);
                 if (partialChunk == null)
                 {
                     partialChunk = new PartialChunk();
-                    partialChunk.x = pos.x + this.x;
-                    partialChunk.y = pos.y + this.y;
+                    partialChunk.x = pos.x;
+                    partialChunk.y = pos.y;
                 }
                 partialChunk.tiles[x - pos.x * 64, y - pos.y * 64] = tile;
             } else
