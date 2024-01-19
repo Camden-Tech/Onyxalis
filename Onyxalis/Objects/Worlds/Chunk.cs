@@ -126,10 +126,6 @@ namespace Onyxalis.Objects.Worlds
             tile.health = health;
             tile.digType = digType;
             tile.hitbox.Position = new Microsoft.Xna.Framework.Vector2(tile.x * Tile.tilesize, tile.y * Tile.tilesize);
-            if (tile.Type == Tile.TileType.LONGGRASS)
-            {
-
-            }
             try
             {
                 Texture2D[,] pieces = Game1.multiTilePieces[type];
@@ -151,8 +147,8 @@ namespace Onyxalis.Objects.Worlds
             {
                 for (int Y = 0; Y < parts.GetLength(1); Y++)
                 {
-                    int adjX = X + x * 64;
-                    int adjY = Y + y * 64;
+                    int adjX = x + this.x * 64;
+                    int adjY = y + this.y * 64;
                     Tile tile = new Tile
                     {
                         x = adjX,
@@ -169,7 +165,7 @@ namespace Onyxalis.Objects.Worlds
                     tile.health = health;
                     tile.digType = digType;
                     tile.hitbox.Position = new Microsoft.Xna.Framework.Vector2(tile.x * Tile.tilesize, tile.y * Tile.tilesize);
-                    setTile(x, y, tile);
+                    setTile(x + X, y + Y, tile);
                 }
             }
         }
@@ -393,9 +389,6 @@ namespace Onyxalis.Objects.Worlds
                     Tile tile = GenerateFoliage(X, Y, height);
                     if (tile != null)
                     {
-                        (Tile.DigType type, int health) = Tile.TileDictionary[tile.Type];
-                        tile.health = health;
-                        tile.digType = type;
                         tooClose = 5;
                         setTile(X,Y, tile);
                     }
@@ -455,21 +448,25 @@ namespace Onyxalis.Objects.Worlds
             newChunk.heightMap = GenerateHeightMap(X, Y, world);
             newChunk.biome.type = Biome.GetBiomeType(newChunk.heightMap);
             newChunk.forestPoints = GenerateForestPoints(X, Y, world, newChunk.biome);
+            
+            int seed = world.seed;
+           
+            if(GenerateTiles) newChunk.GenerateTiles();
             PartialChunk partialChunk = World.retrievePartialChunk(world.GeneratePartialChunkFilepath((X,Y)));
             if(partialChunk != null)
             {
                 newChunk.tiles = partialChunk.tiles;
             }
-            int seed = world.seed;
-           
-            if(GenerateTiles) newChunk.GenerateTiles();
             return newChunk;
         }
 
 
         public void setTile(int x, int y, Tile tile)
         {
-            (int x, int y) pos = World.findChunk(x, y);
+            (int x, int y) pos = (0,0);
+            if(x > 63 || x < 0 || y > 63 || y < 0){
+                pos = World.findChunk(x, y);
+            }
             if (pos != (0,0))
             {
                 PartialChunk partialChunk = world.GetPartialChunk(pos.x + this.x, pos.y + this.y);
