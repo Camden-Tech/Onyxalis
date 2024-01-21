@@ -266,8 +266,8 @@ namespace Onyxalis.Objects.Worlds
 
         public Biome getBiome(int x, int y)
         {
-            float temperature = ((PerlinNoiseGenerator.GeneratePerlinNoise(1, 1f, 0.04f, 1, seed, x)) + 0.5f) * 150 - 40;
-            float heightTemp = -y / 5 + MathF.Pow(MathF.Abs(y / 2) , 1.25f) * (y >= 0 ? -1 : 1);
+            float temperature = ((PerlinNoiseGenerator.GeneratePerlinNoise(1, 1f, 0.04f, 1, seed, x)) + 0.5f) * 170 - 60;
+            float heightTemp = -y / 2 + MathF.Pow(MathF.Abs(y / 2) , 1.25f) * (y >= 0 ? -1 : 1);
             float amplitude = ((PerlinNoiseGenerator.GeneratePerlinNoise(4, 0.25f, 1, 3, seed, x) / 1.33203125f + 1.5f))
                 + MathF.Pow(((PerlinNoiseGenerator.GeneratePerlinNoise(4, 0.25f, 1, 2.75f, seed + 2, x) / 1.33203125f + 1.325f)), 10);
             float hBiome = ((PerlinNoiseGenerator.GeneratePerlinNoise(1, 1f, 0.2f, 1, seed + 3, x)) + 0.5f);

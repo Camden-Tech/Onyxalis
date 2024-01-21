@@ -38,11 +38,21 @@ namespace Onyxalis.Objects.Worlds
         public int[] forestPoints = new int[64];
         public int x;
         public int y;
-
+        private Biome biomeToRight;
+        private Biome biomeToLeft;
+        private Biome biomeToBelow;
+        private Biome biomeToAbove;
         public bool generatedTrees;
         public Biome biome;
         public bool loaded;
         public World world; //Do not serialize
+
+        private enum blendCondition
+        {
+            tooCold,
+            tooHot
+        }
+
         public static float[,] GenerateCaveMap(int x, int y, World world)
         {
             const int size = 64;
@@ -72,7 +82,7 @@ namespace Onyxalis.Objects.Worlds
             if (biome.temperature > 70) return forestPoints;
             for (int X = 0; X < 64; X++)
             {
-                if (PerlinNoiseGenerator.GeneratePerlinNoise(4, 0.25f, 0.04f, 1f, world.seed, x * 64 + X) / 1.33203125f + 0.5f > (0.7f - (biome.horizontalType == Biome.HorizontalBiomeType.Forest ? 0.35f : 0)))
+                if (PerlinNoiseGenerator.GeneratePerlinNoise(4, 0.25f, 0.02f, 1f, world.seed, x * 64 + X) / 1.33203125f + 0.5f > (0.65f - (biome.horizontalType == Biome.HorizontalBiomeType.Forest ? 0.35f : 0)))
                 {
                     forestPoints[i] = X;
                     i++;
@@ -216,15 +226,22 @@ namespace Onyxalis.Objects.Worlds
         }
 
 
-
+        private bool tooHot(Biome biome)
+        {
+            return biome.temperature + biome.heightTemp > 80;
+        }
+        private bool tooCold(Biome biome)
+        {
+            return biome.temperature + biome.heightTemp < 0;
+        }
 
         private Tile GenerateTile(int X, int Y)
         {
             float height = heightMap[X];
             if (!canGenerateTile(Y, height, caveMap[X, Y])) return null;
 
-            bool freezing = biome.temperature + biome.heightTemp < 0;
-            bool hot = biome.temperature + biome.heightTemp > 80;
+            bool freezing = tooCold(biome);
+            bool hot = tooHot(biome);
             int intHeight = (int)height;
             bool belowHeightMap = height - Y <= 0;
 
@@ -248,7 +265,7 @@ namespace Onyxalis.Objects.Worlds
         private Tile GenerateSurfaceTile(int X, int Y, bool freezing, bool hot)
         {
             if (!freezing && !hot) return createTile(X, Y, (X, Y), 0, getTileTypeBetweenTileTypes(Tile.TileType.GRASS, Tile.TileType.GRASS2));
-            return freezing ? GenerateSnow(X, Y) : GenerateSand(X, Y);
+            return freezing ? GenerateSnow(X, Y) : GenerateSurfaceSand(X, Y);
         }
 
         private Tile GenerateSubSurfaceTile(int X, int Y, int intHeight, bool freezing)
@@ -306,19 +323,55 @@ namespace Onyxalis.Objects.Worlds
 
         public Tile GenerateSnow(int X, int Y)
         {
-            return GenerateTileOfType(Tile.TileType.SNOW1, Tile.TileType.SNOW4, X, Y);
+            return blendTile(X, Y, getTileTypeBetweenTileTypes(Tile.TileType.SNOW1, Tile.TileType.SNOW4), Game1.GameRandom.Next(4), getTileTypeBetweenTileTypes(Tile.TileType.GRASS, Tile.TileType.GRASS2), 0, blendCondition.tooCold);
         }
+
         public Tile GeneratePermafrost(int X, int Y)
         {
-            return GenerateTileOfType(Tile.TileType.PERMAFROST1, Tile.TileType.PERMAFROST4, X, Y);
+            return blendTile(X, Y, getTileTypeBetweenTileTypes(Tile.TileType.PERMAFROST1, Tile.TileType.PERMAFROST4), Game1.GameRandom.Next(4), Tile.TileType.STONE, Game1.GameRandom.Next(4), blendCondition.tooCold);
+        }
+
+
+        private Tile blendTile(int X, int Y, Tile.TileType type, int typeRot, Tile.TileType replacement, int replRot, blendCondition condition) //No, do not make that a delegate cause that could be computationally expensive, idk.
+        {
+            bool below = true;
+            bool above = true;
+            bool right = true;
+            bool left = true;
+            switch (condition) {
+                case blendCondition.tooCold:
+                    left = tooCold(biomeToLeft);
+                    right = tooCold(biomeToRight);
+                    above = tooCold(biomeToAbove);
+                    below = tooCold(biomeToBelow);
+                    break;
+                case blendCondition.tooHot:
+                    left = tooHot(biomeToLeft);
+                    right = tooHot(biomeToRight);
+                    above = tooHot(biomeToAbove);
+                    below = tooHot(biomeToBelow);
+                    break;
+            }
+            Tile tile = null;
+            if (right && left && above && below) return createTile(X, Y, (X, Y), typeRot, type);
+            else if (!right && X > 32) tile = Game1.GameRandom.NextDouble() * 6 / MathF.Pow(64 - X, 1.5f) > 0.03125f ? createTile(X, Y, (X, Y), replRot, replacement) : createTile(X, Y, (X, Y), typeRot, type);
+            else if (!left && X < 32) tile = Game1.GameRandom.NextDouble() * 6 / MathF.Pow(X, 1.5f) > 0.03125f ? createTile(X, Y, (X, Y), replRot, replacement) : createTile(X, Y, (X, Y), typeRot, type);
+            if (!above && Y > 32) tile = Game1.GameRandom.NextDouble() * 6 / MathF.Pow(64 - Y, 1.5f) > 0.03125f ? createTile(X, Y, (X, Y), replRot, replacement) : createTile(X, Y, (X, Y), typeRot, type);
+            else if (!below && Y < 32) tile = Game1.GameRandom.NextDouble() * 6 / MathF.Pow(Y, 1.5f) > 0.03125f ? createTile(X, Y, (X, Y), replRot, replacement) : createTile(X, Y, (X, Y), typeRot, type);
+            if (tile == null) return createTile(X, Y, (X, Y), typeRot, type);
+            return tile;
+        }
+
+
+        public Tile GenerateSurfaceSand(int X, int Y)
+        {
+
+            return blendTile(X, Y, getTileTypeBetweenTileTypes(Tile.TileType.SAND1, Tile.TileType.SAND4), Game1.GameRandom.Next(4), getTileTypeBetweenTileTypes(Tile.TileType.GRASS, Tile.TileType.GRASS2), 0, blendCondition.tooHot);
         }
         public Tile GenerateSand(int X, int Y)
         {
-            Tile.TileType type = getTileTypeBetweenTileTypes(Tile.TileType.SAND1, Tile.TileType.SAND4);
-            int rotation = Game1.GameRandom.Next(4);
-            Tile tile = createTile(X, Y, (x, y), rotation, type);
 
-            return tile;
+            return blendTile(X, Y, getTileTypeBetweenTileTypes(Tile.TileType.SAND1, Tile.TileType.SAND4), Game1.GameRandom.Next(4), getTileTypeBetweenTileTypes(Tile.TileType.DIRT1, Tile.TileType.DIRT4), 0, blendCondition.tooHot);
         }
         public Tile GenerateStone(int X, int Y)
         {
@@ -351,7 +404,6 @@ namespace Onyxalis.Objects.Worlds
             return null;
         }
 
-
         public List<Tile[,]> GenerateTree(int X, int Y)
         {
             int height = world.worldRandom.Next(6) + 5;
@@ -372,8 +424,8 @@ namespace Onyxalis.Objects.Worlds
                 else tiles = null;
                 if (tiles != null)
                 {
-                   tileArray.Add(tiles);
-                    
+                    tileArray.Add(tiles);
+
                 }
             }
             return tileArray;
@@ -418,7 +470,7 @@ namespace Onyxalis.Objects.Worlds
             GenerateTrees();
             GeneratePlants();
             generatedTrees = true;
-            
+
 
         }
 
@@ -437,28 +489,30 @@ namespace Onyxalis.Objects.Worlds
                 int Y = (int)height + 1;
                 if (Y >= 0 && Y < 64)
                 {
-                    
+
                     Tile[,] tileArray = GenerateFoliage(X, Y, height);
                     bool goBack = false;
                     if (tileArray != null)
                     {
-                        foreach (Tile tile1 in tileArray) {
+                        foreach (Tile tile1 in tileArray)
+                        {
                             if (tile1 != null)
                             {
                                 if (world.tiles[tile1.x, tile1.y] != null)
                                 {
                                     goBack = true;
-                                } 
+                                }
                                 if (world.tiles[tile1.x, tile1.originalPos.y - tileArray.GetLength(1)] == null) goBack = true;
-                                
-                            } else
+
+                            }
+                            else
                             {
                                 goBack = true;
                                 break;
                             }
-                            
-                        } 
-                        
+
+                        }
+
                         if (goBack) continue;
                         tooClose = 4;
                         foreach (Tile tile in tileArray)
@@ -475,7 +529,7 @@ namespace Onyxalis.Objects.Worlds
         public void GenerateTrees()
         {
             int prevPoint = 0;
-            
+
             for (int i = 0; i < forestPoints.Length; i++)
             {
                 int forestPoint = forestPoints[i];
@@ -489,7 +543,7 @@ namespace Onyxalis.Objects.Worlds
                     if (tileT != null)
                     {
                         List<Tile> tileList = new List<Tile>();
-                        
+
                         foreach (Tile[,] tilet in tileT)
                         {
                             foreach (Tile tile1 in tilet)
@@ -497,7 +551,7 @@ namespace Onyxalis.Objects.Worlds
                                 if (tile1 != null)
                                 {
                                     Tile tile = world.tiles[tile1.x, tile1.y];
-                                    
+
                                     if (tile != null)
                                     {
                                         goBack = true;
@@ -511,7 +565,7 @@ namespace Onyxalis.Objects.Worlds
 
                             if (goBack) break;
                         }
-                        
+
                         if (goBack) continue;
                         foreach (Tile tile in tileList) setTile(tile.x, tile.y, tile);
                         prevPoint = forestPoint;
@@ -530,6 +584,10 @@ namespace Onyxalis.Objects.Worlds
             Chunk newChunk = new Chunk();
             newChunk.x = X;
             newChunk.y = Y;
+            newChunk.biomeToLeft = world.getBiome(X - 1, Y);
+            newChunk.biomeToBelow = world.getBiome(X, Y - 1);
+            newChunk.biomeToAbove = world.getBiome(X, Y + 1);
+            newChunk.biomeToRight = world.getBiome(X + 1, Y);
             newChunk.world = world;
             newChunk.biome = world.getBiome(X, Y);
             newChunk.mossMap = GenerateMossMap(X, Y, world);
