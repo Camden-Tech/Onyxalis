@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Lucene.Net.Support;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -10,21 +11,13 @@ namespace Onyxalis.Objects.Worlds
     {
         public static HorizontalBiomeType GetHorizontalTerrainType(float value)
         {
-            if (value <= 0.1)
-            {
-                return HorizontalBiomeType.Ocean;
-            }
-            else if (value < 0.3)
+            if (value < 0.5)
             {
                 return HorizontalBiomeType.Forest;
             }
-            else if (value < 0.4)
+            else if (value > 0.5f)
             {
                 return HorizontalBiomeType.Plains;
-            }
-            else if (value >= 0.6)
-            {
-                return HorizontalBiomeType.Mountains;
             }
             // ... add other conditions here
 
@@ -35,6 +28,7 @@ namespace Onyxalis.Objects.Worlds
         public float amplitude;
         public BiomeType type;
         public HorizontalBiomeType horizontalType;
+
 
         public enum BiomeType
         {
@@ -57,10 +51,8 @@ namespace Onyxalis.Objects.Worlds
 
         public enum HorizontalBiomeType
         {
-            Ocean = 0,
-            Forest = 1,
-            Plains = 2,
-            Mountains = 3
+            Forest = 2,
+            Plains = 3
             
         }
 

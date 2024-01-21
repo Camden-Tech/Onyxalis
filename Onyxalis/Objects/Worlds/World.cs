@@ -1,4 +1,5 @@
 ﻿using Lucene.Net.Support;
+using MiNET.Blocks;
 using MiNET.Entities.Hostile;
 using MiNET.Utils;
 using Newtonsoft.Json.Linq;
@@ -57,17 +58,17 @@ namespace Onyxalis.Objects.Worlds
                     (int tX, int tY) tileInChunk = (x - chunk.cX * 64, y - chunk.cY * 64);
 
                     Tile tile = null;
-                    Chunk cChunk = world.loadedChunks[(chunk.cX, chunk.cY)];
+                    Chunk cChunk = world.GetChunk(chunk.cX, chunk.cY);
                     if (cChunk != null) {
                         tile = cChunk.tiles[tileInChunk.tX, tileInChunk.tY];
-                    }
+                    } 
                     return tile;
                 }
                 set
                 {
                     (int cX, int cY) chunk = findChunk(x, y);
                     (int tX, int tY) tileInChunk = (x - chunk.cX * 64, y - chunk.cY * 64);
-                    Chunk cChunk = world.loadedChunks[(chunk.cX, chunk.cY)];
+                    Chunk cChunk = world.GetChunk(chunk.cX, chunk.cY);
                     if (cChunk != null)
                     {
                         cChunk.tiles[tileInChunk.tX, tileInChunk.tY] = value;
@@ -159,7 +160,7 @@ namespace Onyxalis.Objects.Worlds
             return null;
         }
 
-        public string writePartialChunkFile(string filePath, PartialChunk c)
+        public string writePartialChunkFile(PartialChunk c)
         {
             string serializedHex = ObjectSerializer.SerializePartialChunk(c);
             Directory.CreateDirectory(filePath);
@@ -171,10 +172,24 @@ namespace Onyxalis.Objects.Worlds
         public PartialChunk GetPartialChunk(int x, int y)
         {
             PartialChunk chunk = partialChunks[(x, y)];
-            if (chunk == null) chunk = retrievePartialChunk(GeneratePartialChunkFilepath((x, y)));
-            if (chunk == null) chunk = null;
+            if (chunk == null)
+            {
+                chunk = retrievePartialChunk(GeneratePartialChunkFilepath((x, y)));
+            }
+            
             return chunk;
         }
+
+        public void deletePartialChunk(String filePath)
+        {
+                // Read the Base64 encoded, compressed data from the file
+            if (File.Exists(filePath))
+            {
+                File.Delete(filePath);
+            }
+            
+        }
+
 
         public Chunk GetChunk(int x, int y)
         {
@@ -187,17 +202,42 @@ namespace Onyxalis.Objects.Worlds
 
         public Chunk LoadChunk(int x, int y)
         {
+            Chunk chunk = GetChunk(x, y);
             foreach ((int x, int y) pos in partialChunks.Keys)
             {
                 PartialChunk partialChunk = partialChunks[pos];
-                writePartialChunkFile(GeneratePartialChunkFilepath((pos.x,pos.y)), partialChunk);
+                
+                if (partialChunk.x == x && partialChunk.y == y)
+                {
+                    for (int i = 0; i < 64; i++)
+                    {
+                        for (int j = 0; j < 64; j++)
+                        {
+                            Tile tile = partialChunk.tiles[i, j];
+                            if (tile != null)
+                            {
+                                chunk.tiles[i, j] = tile;
+                            }
+                            
+                        }
+                    }
+                    deletePartialChunk(GeneratePartialChunkFilepath((x, y)));
+                    partialChunks.Remove(pos);
+                }
             }
-            partialChunks.Clear();
-
-            Chunk chunk = GetChunk(x, y);
-            
             chunk.loaded = true;
             loadedChunks.Add((x, y), chunk);
+
+            for (int X = -1; X < 2; X++)
+            {
+                for (int Y = -1; Y < 2; Y++)
+                {
+                    Chunk c = loadedChunks[(X + x,Y + y)];
+                    if(c == null) continue;
+                    c.adjacentChunkLoaded();
+                }
+            }
+
             return chunk;
         }
 
@@ -210,13 +250,15 @@ namespace Onyxalis.Objects.Worlds
 
         public Biome getBiome(int x, int y)
         {
-            float verticalBiomeTypeNoise = (PerlinNoiseGenerator.GeneratePerlinNoise(4, 0.25f, 1, 1, seed,x) / 1.33203125f);
-            float temperature = ((PerlinNoiseGenerator.GeneratePerlinNoise(1, 1f, 0.4f, 1, seed, x)) + 0.5f) * 140 - 40;
-            float amplitude = ((PerlinNoiseGenerator.GeneratePerlinNoise(4, 0.25f, 1, 1, seed, x) / 1.33203125f + 0.5f)) * 3;
+            float temperature = ((PerlinNoiseGenerator.GeneratePerlinNoise(1, 1f, 0.1f, 1, seed, x)) + 0.5f) * 150 - 50;
             
+            float amplitude = ((PerlinNoiseGenerator.GeneratePerlinNoise(4, 0.25f, 1, 3, seed, x) / 1.33203125f + 1.5f))
+                + MathF.Pow(((PerlinNoiseGenerator.GeneratePerlinNoise(4, 0.25f, 1, 2.75f, seed + 2, x) / 1.33203125f + 1.325f)), 10);
+            float hBiome = ((PerlinNoiseGenerator.GeneratePerlinNoise(1, 1f, 0.2f, 1, seed + 3, x)) + 0.5f);
 
 
-            Biome biome = new Biome(Biome.GetHorizontalTerrainType(verticalBiomeTypeNoise), temperature, amplitude);
+
+            Biome biome = new Biome(Biome.GetHorizontalTerrainType(hBiome), temperature, amplitude);
             return biome;
         }
 

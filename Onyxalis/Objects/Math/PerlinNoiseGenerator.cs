@@ -31,14 +31,14 @@ namespace Onyxalis.Objects.Math
   
           return noiseMap;
       }
-        public static float Generate2DPerlinNoise(int startX, int startY, int octaves, float persistence, float frequency, float amplitude, int seed)
+        public static float Generate2DPerlinNoise(float startX, float startY, int octaves, float persistence, float frequency, float amplitude, int seed)
         {
             float noise = 0;
 
             for (int octave = 0; octave < octaves; octave++)
             {
-                float xCoord = startX * frequency / 1.1f;
-                float yCoord = startY * frequency / 1.1f;
+                float xCoord = startX * frequency;
+                float yCoord = startY * frequency;
 
                 float perlinValue = IcariaNoise.GradientNoise(xCoord, yCoord, seed);
                 noise += perlinValue * amplitude;
@@ -70,7 +70,7 @@ namespace Onyxalis.Objects.Math
 
             return noiseMap;
         }
-        public static float[] GeneratePerlinNoise(int width, int octaves, float persistence, float frequency, float amplitude, int seed, int start)
+        public static float[] GeneratePerlinNoise(int width, int octaves, float persistence, float frequency, float amplitude, int seed, float start)
         {
             float[] noiseMap = new float[width];
 
@@ -90,13 +90,13 @@ namespace Onyxalis.Objects.Math
 
             return noiseMap;
         }
-        public static float GeneratePerlinNoise(int octaves, float persistence, float frequency, float amplitude, int seed, int start)
+        public static float GeneratePerlinNoise(int octaves, float persistence, float frequency, float amplitude, int seed, float start)
         {
             float noise = 0;
 
             for (int octave = 0; octave < octaves; octave++)
             {
-                float xCoord = start * frequency / 3;
+                float xCoord = start * frequency;
                 float perlinValue = IcariaNoise.GradientNoise(xCoord, 0, seed);
                 noise += perlinValue * amplitude;
                 

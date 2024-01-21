@@ -133,6 +133,7 @@ namespace Onyxalis.Objects.Systems
             // Serialize primitive types
             sb.AppendLine(chunk.x.ToString());
             sb.AppendLine(chunk.y.ToString());
+            sb.AppendLine(chunk.generatedTrees.ToString());
             sb.AppendLine(((int)chunk.biome.type).ToString());
 
             // Serialize complex types (like the tiles array)
@@ -189,17 +190,13 @@ namespace Onyxalis.Objects.Systems
                 // Deserialize primitive types
                 chunk.x = int.Parse(lines[lineIndex++]);
                 chunk.y = int.Parse(lines[lineIndex++]);
-                
+                chunk.generatedTrees = bool.Parse(lines[lineIndex++]);
                 chunk.world = Game1.world;
                 chunk.biome = chunk.world.getBiome(chunk.x, chunk.y);
                 chunk.biome.type = (Biome.BiomeType)int.Parse(lines[lineIndex++]);
                 // Deserialize complex types (like the tiles array)
                 Tile[,] newTiles = new Tile[64, 64];
-                PartialChunk partialChunk = chunk.world.GetPartialChunk(chunk.x, chunk.y);
-                if (partialChunk != null)
-                {
-                    newTiles = partialChunk.tiles;
-                }
+                
                 for (int i = 0; i < 64; i++)
                 {
                     for (int j = 0; j < 64; j++)
@@ -239,6 +236,7 @@ namespace Onyxalis.Objects.Systems
                     }
                 }
                 
+
                 return chunk;
             }
         }

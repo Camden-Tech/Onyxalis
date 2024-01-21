@@ -2,6 +2,7 @@
 using Microsoft.Xna.Framework;
 using Onyxalis.Objects.Math;
 using Org.BouncyCastle.Asn1.Cmp;
+using Org.BouncyCastle.Asn1.Mozilla;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -14,10 +15,6 @@ namespace Onyxalis.Objects.Tiles
     public class Tile 
     {
 
-        public Tile()
-        {
-
-        }
         public const int tilesize = 16;
 
         public static Dictionary<TileType, (DigType digType, int health)> TileDictionary = new Dictionary<TileType, (DigType digType, int health)>(){  //Create json file reader instead
@@ -48,9 +45,21 @@ namespace Onyxalis.Objects.Tiles
             {TileType.SHORTGRASS, (DigType.Cutting, 2)},
             {TileType.LONGGRASS, (DigType.Cutting, 3)},
             {TileType.COPPERDEEPROCK, (DigType.Crushing, 35)},
-            {TileType.WOOD, (DigType.Cutting, 10)}
+            {TileType.TREESTUMP, (DigType.Cutting, 30)},
+            {TileType.TREESTALK, (DigType.Cutting, 30)},
+            {TileType.TREETOP, (DigType.Cutting, 30)},
         };
-        
+
+        public static List<TileType> transparentTiles = new List<TileType>()
+        {
+            TileType.LONGGRASS,
+            TileType.SHRUB,
+            TileType.SHORTGRASS,
+            TileType.TREETOP,
+            TileType.TREESTALK,
+            TileType.TREESTUMP,
+        };
+
         public enum DigType
         {
             Digging,
@@ -123,11 +132,13 @@ namespace Onyxalis.Objects.Tiles
         public (int chunkX, int chunkY) chunkPos;
         public int rotation = 0;
         public TileType Type;
-        
+        public Color lightColor = Color.White;
+        public Light light;
+        public bool hasColor = false;
         
         
         public bool damageTile(int amount, DigType type) {
-            health -=  amount * (int)(type == digType ? 1.5f : 1);
+            health -= amount * (int)(type == digType ? 1.5f : 1);
             if(health <= 0) {
                 return true;
             }

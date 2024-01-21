@@ -4,7 +4,6 @@ using Microsoft.Xna.Framework.Input;
 using Onyxalis.Objects.Worlds;
 using Onyxalis.Objects.Entities;
 using Onyxalis.Objects.UI;
-using System;
 using System.Collections.Generic;
 using MiNET.Blocks;
 using System.Diagnostics;
@@ -12,6 +11,10 @@ using Onyxalis.Objects.Tiles;
 using Lucene.Net.Support;
 using Onyxalis.Objects.Math;
 using static Onyxalis.Objects.Tiles.Tile;
+using MiNET.Entities.Hostile;
+using System;
+using Onyxalis.Objects.Systems;
+using System.Reflection.Metadata.Ecma335;
 
 namespace Onyxalis
 {
@@ -145,7 +148,7 @@ namespace Onyxalis
                 Texture2D[,] pieces = TextureGenerator.BreakIntoPieces(multiTileTexture, GraphicsDevice);
                 if (pieces[0,0] == null)
                 {
-
+                    continue;
                 }
                 multiTilePieces[type] = pieces;
             }
@@ -215,6 +218,8 @@ namespace Onyxalis
 
         public void drawTiles()
         {
+            HashMap<(int x,int y), Tile> visibleTiles = new HashMap<(int x, int y), Tile>();
+            List<Light> lightTiles = new List<Light>();
             foreach (Chunk chunk in world.loadedChunks.Values)
             {
                 for (int X = 0; X < 64; X++)
@@ -225,36 +230,104 @@ namespace Onyxalis
                         if (tile != null)
                         {
                             Vector2 pos = new Vector2(tile.x * Tile.tilesize - camera.position.X, tile.y * -Tile.tilesize + camera.position.Y);
-                            if (pos.X > -Tile.tilesize && pos.X < 1980 + Tile.tilesize && pos.Y > -Tile.tilesize && pos.Y < 1080 + Tile.tilesize)
+                            if (pos.X > -Tile.tilesize - 100 && pos.X < 1980 + Tile.tilesize + 100 && pos.Y > -Tile.tilesize - 100 && pos.Y < 1080 + 100 + Tile.tilesize)
                             {
-                                Texture2D tileTexture;
-                                if (!tile.multiTile)
-                                {
-                                    tileTexture = tileTextureDictionary[tile.covering][tile.Type];
-
-                                    if (tileTexture == null)
-                                    {
-                                        tileTexture = tileTextureDictionary[Tile.Covering.NONE][tile.Type];
-                                    }
-                                } else
-                                {
-                                    tileTexture = multiTilePieces[tile.Type][tile.piecePos.x, tile.piecePos.y];
-                                }
-                                Vector2 origin = new Vector2(tileTexture.Width / 2f, tileTexture.Height / 2f);
-                            
-                                _spriteBatch.Draw(tileTexture, pos, null, Color.White, MathHelper.ToRadians(90 * tile.rotation), origin, 2, SpriteEffects.None, 0);
-                            }
-                            if (Keyboard.GetState().IsKeyDown(Keys.F))
-                            {
-                                player.position.X = tile.x * Tile.tilesize;
-                                player.position.Y = tile.y * Tile.tilesize;
+                                visibleTiles.Add((tile.x, tile.y), tile);
                             }
                         }
+                    }
 
+                }
+            }
+            foreach (Tile tile in visibleTiles.Values)
+            {
+                Color finalColor = new Color(0,0,0); // Base ambient light
+                if (!tile.hasColor)
+                {
+                    List<Light> lightTilesAndSun = new List<Light>();
+                    if (tile.y > -150){
+                        Light sun = new Light();
+                        sun.y = 140 + tile.y;
+                        sun.x = tile.x;
+                        sun.range = 400;
+                        sun.color = Color.White;
+                        sun.intensity = 5;
+                        lightTilesAndSun.Add(sun);
+                    }
+                    
+                    foreach (Light L in lightTiles)
+                    {
+                        lightTilesAndSun.Add(L);
+                    }
+
+                    foreach (Light light in lightTilesAndSun)
+                    {
+                        float distance = Vector2.Distance(new Vector2(tile.x, tile.y), new Vector2(light.x, light.y));
+                        float level = 0;
+                        float maxLevel = light.intensity * 4;
+                        if (distance < light.range)
+                        {
+                            int steps = (int)Math.Ceiling(distance);
+
+                            for (int i = 1; i < steps; i++)
+                            {
+                                float t = i / (float)steps;
+                                Vector2 start = new Vector2(light.x, light.y);
+                                Vector2 end = new Vector2(tile.x, tile.y);
+                                Vector2 point = Vector2.Lerp(start, end, t);
+                                Tile tI = world.tiles[(int)point.X, (int)point.Y];
+                                if (tI != null)
+                                {
+                                    if (transparentTiles.Contains(tI.Type)) continue;
+                                    level++;
+                                    if (level >= maxLevel) break;
+                                }
+                            }
+
+                            if (level <= maxLevel)
+                            {
+                                float levelD8 = level / maxLevel;
+                                float attenuation = 1 - (distance / light.range);
+                                Color lightColor = light.color; // Assuming each Light has a Color property
+                                lightColor = Color.Multiply(lightColor, attenuation * (1 - levelD8) * light.intensity / 2);
+                                lightColor.A = 255;
+                                finalColor = TextureGenerator.addColors(finalColor, lightColor);
+                            }
+                        }
+                    }
+                    tile.lightColor = finalColor;
+                    tile.hasColor = true;
+                } else
+                {
+                    finalColor = tile.lightColor;
+                }
+                
+
+                Texture2D tileTexture;
+                if (!tile.multiTile)
+                {
+                    tileTexture = tileTextureDictionary[tile.covering][tile.Type];
+
+                    if (tileTexture == null)
+                    {
+                        tileTexture = tileTextureDictionary[Tile.Covering.NONE][tile.Type];
                     }
                 }
-
+                else
+                {
+                    tileTexture = multiTilePieces[tile.Type][tile.piecePos.x, tile.piecePos.y];
+                }
+                Vector2 origin = new Vector2(tileTexture.Width / 2f, tileTexture.Height / 2f);
+                Vector2 pos = new Vector2(tile.x * Tile.tilesize - camera.position.X, tile.y * -Tile.tilesize + camera.position.Y);
+                _spriteBatch.Draw(tileTexture, pos, null, finalColor, MathHelper.ToRadians(90 * tile.rotation), origin, 2, SpriteEffects.None, 0);
+                    
+                if (Keyboard.GetState().IsKeyDown(Keys.F))
+                {
+                    player.position.X = tile.x * Tile.tilesize;
+                    player.position.Y = tile.y * Tile.tilesize;
+                }
             }
+            
         }
         public void drawPlayer()
         {

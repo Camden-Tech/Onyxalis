@@ -100,7 +100,24 @@ public class TextureGenerator
 
         return pieces;
     }
+    public static Color multiplyColor(Color originalColor, float scaleFactor)
+    {
+        int r = (int)(originalColor.R * scaleFactor);
+        int g = (int)(originalColor.G * scaleFactor);
+        int b = (int)(originalColor.B * scaleFactor);
 
+        Color scaledColor = new Color(r, g, b, originalColor.A);
+        return scaledColor;
+    }
 
+    public static Color addColors(Color color1, Color color2)
+    {
+        int r = Math.Min(color1.R + color2.R, 255);
+        int g = Math.Min(color1.G + color2.G, 255);
+        int b = Math.Min(color1.B + color2.B, 255);
+        int a = Math.Min((255 - color1.A) + (255 - color2.A), 255);
 
+        Color scaledColor = new Color(r, g, b, 255 - a);
+        return scaledColor;
+    }
 }
