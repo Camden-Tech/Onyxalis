@@ -1,4 +1,5 @@
 ﻿using Lucene.Net.Support;
+using Microsoft.Xna.Framework;
 using MiNET.Blocks;
 using MiNET.Entities.Hostile;
 using MiNET.Utils;
@@ -13,7 +14,6 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Numerics;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Text.Json;
@@ -73,8 +73,6 @@ namespace Onyxalis.Objects.Worlds
                     {
                         cChunk.tiles[tileInChunk.tX, tileInChunk.tY] = value;
                     }
-                    
-                    
                 }
             }
         }
@@ -82,7 +80,11 @@ namespace Onyxalis.Objects.Worlds
 
         public HashMap<(int,int), Chunk> loadedChunks = new HashMap<(int, int), Chunk>();
         public HashMap<(int, int), PartialChunk> partialChunks = new HashMap<(int, int), PartialChunk>();
-        public int time;
+        public float time = 18000;
+        public bool day = true;
+        public const float dayTimeLength = 36000;
+        public const float dayTimeLengthSq = dayTimeLength * dayTimeLength;
+        public int days = 0;
         public Weather weather;
         public int seed;
         public Random worldRandom;
@@ -104,7 +106,6 @@ namespace Onyxalis.Objects.Worlds
         {
             return ((int)MathF.Round((X - 31.5f) / 64f), (int)(MathF.Round((Y - 31.5f) / 64f))); 
         }
-
 
         public void UnloadChunk((int x, int y) pos)
         {
@@ -134,7 +135,22 @@ namespace Onyxalis.Objects.Worlds
             return path;
         }
 
+        public Light CalculateSunlight(int x, int y)
+        {
+            Light sun = new Light();
+            float subt = (time - dayTimeLength / 2);
+            float div = subt / dayTimeLength;
+            float intensityMult = -MathF.Pow(div * 2f, 2) + 1.5f;
+            if (intensityMult > 1) intensityMult = 1;
 
+            sun.x = (int)(div * 5) + x; // Adjust for your game's scale
+            sun.y = 100 + y; // Adjust for your game's scale
+            sun.color = Color.White;
+            sun.range = 200;
+            sun.intensity = 5 * intensityMult;
+
+            return sun;
+        }
         public static Chunk retrieveChunk(string filePath)
         {
             // Read the Base64 encoded, compressed data from the file
@@ -250,15 +266,15 @@ namespace Onyxalis.Objects.Worlds
 
         public Biome getBiome(int x, int y)
         {
-            float temperature = ((PerlinNoiseGenerator.GeneratePerlinNoise(1, 1f, 0.1f, 1, seed, x)) + 0.5f) * 150 - 50;
-            
+            float temperature = ((PerlinNoiseGenerator.GeneratePerlinNoise(1, 1f, 0.04f, 1, seed, x)) + 0.5f) * 150 - 40;
+            float heightTemp = -y / 5 + MathF.Pow(MathF.Abs(y / 2) , 1.25f) * (y >= 0 ? -1 : 1);
             float amplitude = ((PerlinNoiseGenerator.GeneratePerlinNoise(4, 0.25f, 1, 3, seed, x) / 1.33203125f + 1.5f))
                 + MathF.Pow(((PerlinNoiseGenerator.GeneratePerlinNoise(4, 0.25f, 1, 2.75f, seed + 2, x) / 1.33203125f + 1.325f)), 10);
             float hBiome = ((PerlinNoiseGenerator.GeneratePerlinNoise(1, 1f, 0.2f, 1, seed + 3, x)) + 0.5f);
 
 
 
-            Biome biome = new Biome(Biome.GetHorizontalTerrainType(hBiome), temperature, amplitude);
+            Biome biome = new Biome(Biome.GetHorizontalTerrainType(hBiome), temperature, amplitude, heightTemp);
             return biome;
         }
 

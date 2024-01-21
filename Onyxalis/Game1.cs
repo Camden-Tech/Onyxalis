@@ -15,6 +15,7 @@ using MiNET.Entities.Hostile;
 using System;
 using Onyxalis.Objects.Systems;
 using System.Reflection.Metadata.Ecma335;
+using Org.BouncyCastle.Asn1.Mozilla;
 
 namespace Onyxalis
 {
@@ -24,7 +25,7 @@ namespace Onyxalis
         private SpriteBatch _spriteBatch;
         public static Random GameRandom = new Random();
         public static World world;
-        public float time = 0;
+        public int redoLights = 0;
         Player player = new Player();
         Objects.UI.Camera camera = new Objects.UI.Camera();
         GameState state = GameState.Menu;
@@ -137,6 +138,7 @@ namespace Onyxalis
                 { TileType.TREESTUMP, Content.Load<Texture2D>("Multitiles/TreeStump") },
                 { TileType.TREESTALK, Content.Load<Texture2D>("Multitiles/Stalk") },
                 { TileType.TREETOP, Content.Load<Texture2D>("Multitiles/Top") },
+                { TileType.TREETOP2, Content.Load<Texture2D>("Multitiles/Top2") },
                 { TileType.SHRUB, Content.Load<Texture2D>("Multitiles/Shrub") },
                 { TileType.SHORTGRASS, Content.Load<Texture2D>("Multitiles/ShortGrass") },
                 { TileType.LONGGRASS, Content.Load<Texture2D>("Multitiles/TallGrass") }
@@ -170,6 +172,12 @@ namespace Onyxalis
                 Exit();
             camera.position = player.position - new Vector2(1920 / 2, -1080 / 2);
             player.Acceleration = Vector2.Zero;
+            world.time++;
+            if (world.time > World.dayTimeLength)
+            {
+                world.time = 0;
+                world.day = !world.day;
+            }
             if (Keyboard.GetState().IsKeyDown(Keys.W))
             {
                 player.Acceleration.Y = 15;
@@ -218,8 +226,18 @@ namespace Onyxalis
 
         public void drawTiles()
         {
-            HashMap<(int x,int y), Tile> visibleTiles = new HashMap<(int x, int y), Tile>();
+            redoLights++;
+            int viewportPadding = 100; // Extra padding around the viewport to include tiles
+            Rectangle viewport = new Rectangle(
+                (int)camera.position.X - viewportPadding,
+                (int)-camera.position.Y - viewportPadding,
+                _graphics.PreferredBackBufferWidth + viewportPadding * 2,
+                _graphics.PreferredBackBufferHeight + viewportPadding * 2);
+
+            bool shouldUpdateLights = redoLights > 4;
+           
             List<Light> lightTiles = new List<Light>();
+
             foreach (Chunk chunk in world.loadedChunks.Values)
             {
                 for (int X = 0; X < 64; X++)
@@ -227,107 +245,96 @@ namespace Onyxalis
                     for (int Y = 0; Y < 64; Y++)
                     {
                         Tile tile = chunk.tiles[X, Y];
+                        
                         if (tile != null)
                         {
-                            Vector2 pos = new Vector2(tile.x * Tile.tilesize - camera.position.X, tile.y * -Tile.tilesize + camera.position.Y);
-                            if (pos.X > -Tile.tilesize - 100 && pos.X < 1980 + Tile.tilesize + 100 && pos.Y > -Tile.tilesize - 100 && pos.Y < 1080 + 100 + Tile.tilesize)
+                            
+                            Vector2 tileWorldPosition = new Vector2(tile.x * Tile.tilesize, tile.y * -Tile.tilesize);
+                            if (viewport.Contains(tileWorldPosition))
                             {
-                                visibleTiles.Add((tile.x, tile.y), tile);
-                            }
-                        }
-                    }
-
-                }
-            }
-            foreach (Tile tile in visibleTiles.Values)
-            {
-                Color finalColor = new Color(0,0,0); // Base ambient light
-                if (!tile.hasColor)
-                {
-                    List<Light> lightTilesAndSun = new List<Light>();
-                    if (tile.y > -150){
-                        Light sun = new Light();
-                        sun.y = 140 + tile.y;
-                        sun.x = tile.x;
-                        sun.range = 400;
-                        sun.color = Color.White;
-                        sun.intensity = 5;
-                        lightTilesAndSun.Add(sun);
-                    }
-                    
-                    foreach (Light L in lightTiles)
-                    {
-                        lightTilesAndSun.Add(L);
-                    }
-
-                    foreach (Light light in lightTilesAndSun)
-                    {
-                        float distance = Vector2.Distance(new Vector2(tile.x, tile.y), new Vector2(light.x, light.y));
-                        float level = 0;
-                        float maxLevel = light.intensity * 4;
-                        if (distance < light.range)
-                        {
-                            int steps = (int)Math.Ceiling(distance);
-
-                            for (int i = 1; i < steps; i++)
-                            {
-                                float t = i / (float)steps;
-                                Vector2 start = new Vector2(light.x, light.y);
-                                Vector2 end = new Vector2(tile.x, tile.y);
-                                Vector2 point = Vector2.Lerp(start, end, t);
-                                Tile tI = world.tiles[(int)point.X, (int)point.Y];
-                                if (tI != null)
+                                if (shouldUpdateLights)
                                 {
-                                    if (transparentTiles.Contains(tI.Type)) continue;
-                                    level++;
-                                    if (level >= maxLevel) break;
+                                    UpdateTileSunLighting(tile, world, world.CalculateSunlight(tile.x, tile.y));
                                 }
-                            }
+                                UpdateTileLighting(tile, lightTiles, world);
+                                
 
-                            if (level <= maxLevel)
-                            {
-                                float levelD8 = level / maxLevel;
-                                float attenuation = 1 - (distance / light.range);
-                                Color lightColor = light.color; // Assuming each Light has a Color property
-                                lightColor = Color.Multiply(lightColor, attenuation * (1 - levelD8) * light.intensity / 2);
-                                lightColor.A = 255;
-                                finalColor = TextureGenerator.addColors(finalColor, lightColor);
+                                DrawTile(tile);
                             }
                         }
                     }
-                    tile.lightColor = finalColor;
-                    tile.hasColor = true;
-                } else
-                {
-                    finalColor = tile.lightColor;
-                }
-                
-
-                Texture2D tileTexture;
-                if (!tile.multiTile)
-                {
-                    tileTexture = tileTextureDictionary[tile.covering][tile.Type];
-
-                    if (tileTexture == null)
-                    {
-                        tileTexture = tileTextureDictionary[Tile.Covering.NONE][tile.Type];
-                    }
-                }
-                else
-                {
-                    tileTexture = multiTilePieces[tile.Type][tile.piecePos.x, tile.piecePos.y];
-                }
-                Vector2 origin = new Vector2(tileTexture.Width / 2f, tileTexture.Height / 2f);
-                Vector2 pos = new Vector2(tile.x * Tile.tilesize - camera.position.X, tile.y * -Tile.tilesize + camera.position.Y);
-                _spriteBatch.Draw(tileTexture, pos, null, finalColor, MathHelper.ToRadians(90 * tile.rotation), origin, 2, SpriteEffects.None, 0);
-                    
-                if (Keyboard.GetState().IsKeyDown(Keys.F))
-                {
-                    player.position.X = tile.x * Tile.tilesize;
-                    player.position.Y = tile.y * Tile.tilesize;
                 }
             }
-            
+            if(shouldUpdateLights)
+            {
+                redoLights = 0;
+            }
+        }
+
+        private void UpdateTileLighting(Tile tile, List<Light> lightTiles, World world)
+        {
+            Color finalColor = tile.sunLight; // Base ambient light
+            foreach (Light light in lightTiles)
+            {
+                float dx = tile.x - light.x;
+                float dy = tile.y - light.y;
+                float distanceSquared = dx * dx + dy * dy;
+                float lightRangeSquared = light.range * light.range;
+                if (distanceSquared < lightRangeSquared)
+                {
+                    int level = Shadows.IsLineOfSightClear((tile.x, tile.y), (light.x, light.y), world, light);
+                    float maxLevel = light.intensity * 4;
+                    if (level <= maxLevel)
+                    {
+                        float attenuation = 1 - (MathF.Sqrt(distanceSquared) / light.range);
+                        Color lightColor = Color.Multiply(light.color, attenuation * (1 - (level / maxLevel)) * light.intensity / 2);
+                        lightColor.A = 255;
+                        finalColor = TextureGenerator.addColors(finalColor, lightColor);
+                    }
+                }
+            }
+            tile.lightColor = finalColor;
+            tile.hasColor = true;
+        }
+        private void UpdateTileSunLighting(Tile tile, World world, Light sun)
+        {
+            Color finalColor = new Color(0, 0, 0); // Base ambient light
+            if (world.day && tile.y > -90)
+            {
+                float dx = tile.x - sun.x;
+                float dy = tile.y - sun.y;
+                float distanceSquared = dx * dx + dy * dy;
+                float lightRangeSquared = sun.range * sun.range;
+
+                if (distanceSquared < lightRangeSquared)
+                {
+                    int level = Shadows.IsLineOfSightClear((tile.x, tile.y), (sun.x, sun.y), world, sun);
+                    float maxLevel = sun.intensity * 4;
+                    if (level <= maxLevel)
+                    {
+                        float attenuation = 1 - (MathF.Sqrt(distanceSquared) / sun.range);
+                        Color lightColor = Color.Multiply(sun.color, attenuation * (1 - (level / maxLevel)) * sun.intensity / 2);
+                        lightColor.A = 255;
+                        finalColor = TextureGenerator.addColors(finalColor, lightColor);
+                    }
+                }
+            }
+
+            tile.sunLight = finalColor;
+        }
+
+        private void DrawTile(Tile tile)
+        {
+            Texture2D tileTexture = tile.multiTile ? multiTilePieces[tile.Type][tile.piecePos.x, tile.piecePos.y]
+                                                   : tileTextureDictionary[tile.covering][tile.Type];
+            if (tileTexture == null)
+            {
+                tileTexture = tileTextureDictionary[Tile.Covering.NONE][tile.Type];
+            }
+            Vector2 origin = new Vector2(tileTexture.Width / 2f, tileTexture.Height / 2f);
+            Vector2 pos = new Vector2(tile.x * Tile.tilesize - camera.position.X, tile.y * -Tile.tilesize + camera.position.Y);
+            // _spriteBatch.Draw(tileTexture, pos, null, tile.lightColor, MathHelper.ToRadians(90 * tile.rotation), origin, 2, SpriteEffects.None, 0);
+            _spriteBatch.Draw(tileTexture, pos, null, Color.White, MathHelper.ToRadians(90 * tile.rotation), origin, 2, SpriteEffects.None, 0);
         }
         public void drawPlayer()
         {

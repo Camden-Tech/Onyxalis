@@ -1,5 +1,8 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using Onyxalis.Objects.Math;
+using Onyxalis.Objects.Tiles;
+using Onyxalis.Objects.Worlds;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -54,6 +57,62 @@ namespace Onyxalis.Objects.Systems
                 (originalColor.B * biasAdj + colorToApply.B * bias) / 2,
                 originalColor.A // Preserving the original alpha value
             );
+        }
+        public static int IsLineOfSightClear((int x, int y) start, (int x, int y) end, World world, Light light)
+        {
+            int x = start.x;
+            int y = start.y;
+            int dx = (int)MathF.Abs(end.x - start.x);
+            int dy = (int)-MathF.Abs(end.y - start.y);
+            int sx = start.x < end.x ? 1 : -1;
+            int sy = start.y < end.y ? 1 : -1;
+            int err = dx + dy; // Note the change here
+            int level = 0;
+
+            while (true)
+            {
+                if (TileBlocksLight(x, y, world))
+                {
+                    level++;
+                    if (level > light.intensity * 4 - 1)
+                    {
+                        return level; // If the light level exceeds the threshold, return the current level
+                    }
+                }
+
+                if (x == end.x && y == end.y)
+                {
+                    break;
+                }
+
+                int e2 = 2 * err;
+                if (e2 >= dy)
+                {
+                    err += dy;
+                    x += sx;
+                }
+                if (e2 <= dx)
+                {
+                    err += dx;
+                    y += sy;
+                }
+            }
+
+            return level;
+        }
+
+        private static bool TileBlocksLight(int x, int y, World world)
+        {
+            // Implement your logic to determine if the tile at (x, y) blocks light
+            // For example, check if the tile is opaque or not
+            Tile tile = world.tiles[x, y]; // Implement GetTileAt to retrieve the tile at given coordinates
+            if (tile != null) {
+                if (tile.multiTile == true) return false;
+                return true;
+            } else
+            {
+                return false;
+            }
         }
     }
 }

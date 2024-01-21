@@ -25,6 +25,7 @@ namespace Onyxalis.Objects.Worlds
         }
 
         public float temperature;
+        public float heightTemp;
         public float amplitude;
         public BiomeType type;
         public HorizontalBiomeType horizontalType;
@@ -82,11 +83,12 @@ namespace Onyxalis.Objects.Worlds
         }
         
         
-        public Biome(HorizontalBiomeType horizontalType, float temp, float amp) 
+        public Biome(HorizontalBiomeType horizontalType, float temp, float amp, float heightTemp) 
         {
             this.horizontalType = horizontalType;
             temperature = temp;
-            amplitude = amp; 
+            amplitude = amp;
+            this.heightTemp = heightTemp;
             
         }
     }

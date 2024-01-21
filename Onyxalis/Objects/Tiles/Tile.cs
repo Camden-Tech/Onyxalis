@@ -48,6 +48,7 @@ namespace Onyxalis.Objects.Tiles
             {TileType.TREESTUMP, (DigType.Cutting, 30)},
             {TileType.TREESTALK, (DigType.Cutting, 30)},
             {TileType.TREETOP, (DigType.Cutting, 30)},
+            {TileType.TREETOP2, (DigType.Cutting, 30)},
         };
 
         public static List<TileType> transparentTiles = new List<TileType>()
@@ -108,9 +109,10 @@ namespace Onyxalis.Objects.Tiles
             TREESTUMP = 25,
             TREESTALK = 26,
             TREETOP = 27,
-            SHRUB = 28,
-            SHORTGRASS = 29,
-            LONGGRASS = 30
+            TREETOP2 = 28,
+            SHRUB = 29,
+            SHORTGRASS = 30,
+            LONGGRASS = 31
         }
 
         public enum Covering
@@ -134,6 +136,7 @@ namespace Onyxalis.Objects.Tiles
         public TileType Type;
         public Color lightColor = Color.White;
         public Light light;
+        public Color sunLight;
         public bool hasColor = false;
         
         

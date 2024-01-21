@@ -43,7 +43,28 @@ namespace Onyxalis.Objects.Worlds
         public Biome biome;
         public bool loaded;
         public World world; //Do not serialize
+        public static float[,] GenerateCaveMap(int x, int y, World world)
+        {
+            const int size = 64;
+            float[,] cavemap = new float[size, size];
 
+            for (int X = 0; X < size; X++)
+            {
+                int adjustedX = x * size + X;
+                for (int Y = 0; Y < size; Y++)
+                {
+                    int adjustedY = y * size + Y;
+                    cavemap[X, Y] = CalculateCaveValue(adjustedX, adjustedY, world);
+                }
+            }
+
+            return cavemap;
+        }
+
+        private static float CalculateCaveValue(int x, int y, World world)
+        {
+            return (PerlinNoiseGenerator.Generate2DPerlinNoise(x, y, 4, 0.25f, 0.01f, 1f, world.seed) / 1.33203125f) + 0.5f;
+        }
         public static int[] GenerateForestPoints(int x, int y, World world, Biome biome)
         {
             int[] forestPoints = new int[64];
@@ -62,17 +83,22 @@ namespace Onyxalis.Objects.Worlds
 
 
         public static float[] GenerateHeightMap(int x, int y, World world, Biome biome)
-        {;
-            float[] perlinNoise = PerlinNoiseGenerator.GeneratePerlinNoise(64, 4, 0.25f, 0.125f, biome.amplitude * 4, world.seed, x * 64);
-            float[] heightMap = new float[64];
+        {
+            const int size = 64;
+            float[] perlinNoise = PerlinNoiseGenerator.GeneratePerlinNoise(size, 4, 0.25f, 0.125f, biome.amplitude * 4, world.seed, x * size);
+            float[] heightMap = new float[size];
 
-            for (int i = 0; i < 64; i++)
+            for (int i = 0; i < size; i++)
             {
-                heightMap[i] = (perlinNoise[i] / 1.33203125f) * 5 + 32 - y * 64;
+                heightMap[i] = CalculateHeightValue(perlinNoise[i], y, size);
             }
-            
 
             return heightMap;
+        }
+
+        private static float CalculateHeightValue(float perlinValue, int y, int size)
+        {
+            return (perlinValue / 1.33203125f) * 5 + 32 - y * size;
         }
 
 
@@ -80,16 +106,24 @@ namespace Onyxalis.Objects.Worlds
 
         public static float[,] GenerateMossMap(int x, int y, World world)
         {
-            float[,] mossmap = new float[64, 64];
-            for (int X = 0; X < 64; X++)
+            const int size = 64;
+            float[,] mossmap = new float[size, size];
+
+            for (int X = 0; X < size; X++)
             {
-                for (int Y = 0; Y < 64; Y++)
+                int adjustedX = x * size + X;
+                for (int Y = 0; Y < size; Y++)
                 {
-                    mossmap[X,Y] = (PerlinNoiseGenerator.Generate2DPerlinNoise(x* 64 + X, y* 64 + Y, 4, 0.25f, 0.04f, 1f, world.seed)  / 1.33203125f) + 0.5f;
+                    int adjustedY = y * size + Y;
+                    mossmap[X, Y] = CalculateMossValue(adjustedX, adjustedY, world);
                 }
             }
-
             return mossmap;
+        }
+
+        private static float CalculateMossValue(int x, int y, World world)
+        {
+            return (PerlinNoiseGenerator.Generate2DPerlinNoise(x, y, 4, 0.25f, 0.04f, 1f, world.seed) / 1.33203125f) + 0.5f;
         }
 
 
@@ -187,93 +221,62 @@ namespace Onyxalis.Objects.Worlds
         private Tile GenerateTile(int X, int Y)
         {
             float height = heightMap[X];
-            float noise = caveMap[X, Y];
-            Tile tile;
-            if (canGenerateTile(Y, height, caveMap[X,Y]))
-            { //Is not cave empty space?
-                
-                bool freezing = biome.temperature < 0;
-                bool hot = biome.temperature > 80;
+            if (!canGenerateTile(Y, height, caveMap[X, Y])) return null;
 
-                int intHeight = (int)height;
-                
-                bool belowHeightMap = height - Y <= 0;
-                if (!belowHeightMap)
-                { // If it is below the height
-                    bool matchesHeight = Y == intHeight;
-                    if (height >= -75f)
-                    {
+            bool freezing = biome.temperature + biome.heightTemp < 0;
+            bool hot = biome.temperature + biome.heightTemp > 80;
+            int intHeight = (int)height;
+            bool belowHeightMap = height - Y <= 0;
 
-                        if (matchesHeight)
-                        {
-                            if (!freezing && !hot)
-                            {
-                                return createTile(X, Y, (X, Y), 0, Tile.TileType.GRASS);
-                            }
+            if (belowHeightMap) return null;
 
-                            if (freezing)
-                            {
-                                tile = GenerateSnow(X, Y);
-                                return tile;
-                            }
-                            tile = GenerateSand(X, Y);
-                            return tile;
-
-                        }
-                    }
-                    if (Y < intHeight - 40)
-                    {
-                        if (Y < intHeight - 160)
-                        {
-                            tile = GenerateDeepRock(X, Y);
-                            bool mossHospitable = (biome.temperature > 20 && biome.temperature < 80);
-                            if (mossHospitable)
-                            {
-                                tile.covering = GenerateMoss(X, Y);
-                            }
-                            return tile;
-                        }
-                        tile = freezing ? GeneratePermafrost(X, Y) : GenerateStone(X, Y);
-                        return tile;
-                    }
-                    int add = intHeight + y * 64;
-                    if (add > 75)
-                    {
-                        if (matchesHeight)
-                        {
-                            tile = GenerateSnow(X, Y);
-                            return tile;
-                        }
-
-                        if (Y < intHeight - 40 + (add - 75) / 2)
-                        {
-                            tile = freezing ? GeneratePermafrost(X, Y) : GenerateStone(X, Y);
-                            return tile;
-                        }
-
-                        tile = GenerateDirt(X, Y);
-                        return tile;
-
-                    }
-
-
-                    tile = hot ? GenerateSand(X, Y) : GenerateDirt(X, Y);
-                    return tile;
-                }
+            bool matchesHeight = Y == intHeight;
+            if (height >= -75f && matchesHeight)
+            {
+                return GenerateSurfaceTile(X, Y, freezing, hot);
             }
-          return null;
+            else if (Y < intHeight - 40)
+            {
+                return GenerateSubSurfaceTile(X, Y, intHeight, freezing);
+            }
+            else
+            {
+                return hot ? GenerateSand(X, Y) : GenerateDirt(X, Y);
+            }
         }
 
+        private Tile GenerateSurfaceTile(int X, int Y, bool freezing, bool hot)
+        {
+            if (!freezing && !hot) return createTile(X, Y, (X, Y), 0, getTileTypeBetweenTileTypes(Tile.TileType.GRASS, Tile.TileType.GRASS2));
+            return freezing ? GenerateSnow(X, Y) : GenerateSand(X, Y);
+        }
+
+        private Tile GenerateSubSurfaceTile(int X, int Y, int intHeight, bool freezing)
+        {
+            if (Y < intHeight - 160)
+            {
+                Tile tile = GenerateDeepRock(X, Y);
+                if (IsMossHospitable()) tile.covering = GenerateMoss(X, Y);
+                return tile;
+            }
+            return freezing ? GeneratePermafrost(X, Y) : GenerateStone(X, Y);
+        }
+
+        private bool IsMossHospitable()
+        {
+            int newTemp = (int)(biome.heightTemp + biome.temperature);
+            return newTemp > 20 && newTemp < 80;
+        }
 
         public Tile.TileType getTileTypeBetweenTileTypes(Tile.TileType first, Tile.TileType last)
         {
-            int rand = world.worldRandom.Next(last + 1 - first);
+            int rand = Game1.GameRandom.Next(last + 1 - first);
             return first + rand;
         }
 
         public Tile[,] GenerateGrass(int X, int Y)
         {
-            if (world.worldRandom.Next(5) > 3)
+            if (Game1.GameRandom.Next(5) > 3)
             {
                 Tile.TileType type = getTileTypeBetweenTileTypes(Tile.TileType.SHORTGRASS, Tile.TileType.LONGGRASS);
                 int rotation = 0;
@@ -284,51 +287,48 @@ namespace Onyxalis.Objects.Worlds
             
             
         }
+        private Tile GenerateTileOfType(Tile.TileType firstType, Tile.TileType lastType, int X, int Y)
+        {
+            Tile.TileType type = GetRandomTileType(firstType, lastType);
+            int rotation = Game1.GameRandom.Next(4);
+            return createTile(X, Y, (X, Y), rotation, type);
+        }
 
+        private Tile.TileType GetRandomTileType(Tile.TileType first, Tile.TileType last)
+        {
+            return first + Game1.GameRandom.Next(last + 1 - first);
+        }
 
         public Tile GenerateDirt(int X, int Y)
         {
-            Tile.TileType type = getTileTypeBetweenTileTypes(Tile.TileType.DIRT1, Tile.TileType.DIRT4);
-            int rotation = world.worldRandom.Next(4);
-            Tile tile = createTile(X, Y, (x, y), rotation, type);
-            return tile;
+            return GenerateTileOfType(Tile.TileType.DIRT1, Tile.TileType.DIRT4, X, Y);
         }
+
         public Tile GenerateSnow(int X, int Y)
         {
-            Tile.TileType type = getTileTypeBetweenTileTypes(Tile.TileType.SNOW1, Tile.TileType.SNOW4);
-            int rotation = world.worldRandom.Next(4);
-            Tile tile = createTile(X, Y, (x, y), rotation, type);
-            return tile;
+            return GenerateTileOfType(Tile.TileType.SNOW1, Tile.TileType.SNOW4, X, Y);
         }
         public Tile GeneratePermafrost(int X, int Y)
         {
-            Tile.TileType type = getTileTypeBetweenTileTypes(Tile.TileType.PERMAFROST1, Tile.TileType.PERMAFROST4);
-            int rotation = world.worldRandom.Next(4);
-            Tile tile = createTile(X, Y, (x, y), rotation, type);
-            return tile;
+            return GenerateTileOfType(Tile.TileType.PERMAFROST1, Tile.TileType.PERMAFROST4, X, Y);
         }
         public Tile GenerateSand(int X, int Y)
         {
             Tile.TileType type = getTileTypeBetweenTileTypes(Tile.TileType.SAND1, Tile.TileType.SAND4);
-            int rotation = world.worldRandom.Next(4);
+            int rotation = Game1.GameRandom.Next(4);
             Tile tile = createTile(X, Y, (x, y), rotation, type);
 
             return tile;
         }
         public Tile GenerateStone(int X, int Y)
         {
-            Tile.TileType type = Tile.TileType.STONE;
-            
-            int rotation = world.worldRandom.Next(4);
-            Tile tile = createTile(X, Y, (x, y), rotation, type);
-            return tile;
+            // Since STONE doesn't have a range, we directly call createTile
+            int rotation = Game1.GameRandom.Next(4);
+            return createTile(X, Y, (X, Y), rotation, Tile.TileType.STONE);
         }
         public Tile GenerateDeepRock(int X, int Y)
         {
-            Tile.TileType type = getTileTypeBetweenTileTypes(Tile.TileType.DEEPROCK1, Tile.TileType.DEEPROCK4);
-            int rotation = world.worldRandom.Next(4);
-            Tile tile = createTile(X, Y, (x, y), rotation, type);
-            return tile;
+            return GenerateTileOfType(Tile.TileType.DEEPROCK1, Tile.TileType.DEEPROCK4, X, Y);
         }
 
         public Tile[,] GenerateFoliage(int X,int Y, float height){
@@ -342,7 +342,7 @@ namespace Onyxalis.Objects.Worlds
                     tiles = GenerateGrass(X,Y);
                     return tiles;
                 }
-                if (freezing && world.worldRandom.Next(11) >= 9)
+                if (freezing && Game1.GameRandom.Next(11) >= 9)
                 {
                     tiles = createMultiTile(X, Y, (x, y), 0, Tile.TileType.SHRUB);
                     return tiles;
@@ -368,7 +368,7 @@ namespace Onyxalis.Objects.Worlds
                     }
                 }
                 else if (i < height) tiles = createMultiTile(X, Y + i * 4, (this.x, this.y), 0, Tile.TileType.TREESTALK);
-                else if (i == height) tiles = createMultiTile(X, Y + i * 4, (this.x, this.y), 0, Tile.TileType.TREETOP);
+                else if (i == height) tiles = createMultiTile(X - 2, Y + i * 4, (this.x, this.y), 0, getTileTypeBetweenTileTypes(Tile.TileType.TREETOP, Tile.TileType.TREETOP2));
                 else tiles = null;
                 if (tiles != null)
                 {
@@ -382,21 +382,17 @@ namespace Onyxalis.Objects.Worlds
 
         public void GenerateTiles()
         {
-            for (int X = 0; X < 64; X++)
+            Parallel.For(0, 64, X =>
             {
                 for (int Y = 0; Y < 64; Y++)
                 {
                     Tile tile = GenerateTile(X, Y);
                     if (tile != null)
                     {
-
                         tiles[X, Y] = tile;
                     }
                 }
-            }
-
-
-
+            });
         }
 
         public void adjacentChunkLoaded()
@@ -525,21 +521,9 @@ namespace Onyxalis.Objects.Worlds
         }
 
 
-        public static float[,] GenerateCaveMap(int x, int y, World world)
-        {
-            float[,] cavemap = new float[64, 64];
-            for (int X = 0; X < 64; X++)
-            {
-                for (int Y = 0; Y < 64; Y++)
-                {
-                    cavemap[X, Y] = (PerlinNoiseGenerator.Generate2DPerlinNoise(x * 64 + X, y * 64 + Y, 4, 0.25f, 0.01f, 1f, world.seed) / 1.33203125f) + 0.5f;
-                }
-            }
 
-            return cavemap;
-        }
 
-        
+
 
         public static Chunk CreateChunk(int X, int Y, World world, bool GenerateTiles)
         {
