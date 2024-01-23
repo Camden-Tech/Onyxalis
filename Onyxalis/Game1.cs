@@ -16,6 +16,7 @@ using System;
 using Onyxalis.Objects.Systems;
 using System.Reflection.Metadata.Ecma335;
 using Org.BouncyCastle.Asn1.Mozilla;
+using static Onyxalis.Objects.Systems.JsonReader;
 
 namespace Onyxalis
 {
@@ -88,33 +89,60 @@ namespace Onyxalis
         protected override void LoadContent()
         {
             _spriteBatch = new SpriteBatch(GraphicsDevice);
-            HashMap<TileType, Texture2D> dictionaryDefault = new HashMap<TileType, Texture2D> //Create json file reader instead
+
+            JsonReader reader = new JsonReader();
+            dynamic texturesLoaded = reader.LoadJson("../../../../blockSaves/blocks.json");
+
+            Debug.WriteLine((string)texturesLoaded["SNOW1"]);
+            List<string> keyList = new List<string>(texturesLoaded.Keys);
+            Debug.WriteLine(keyList[0]); // https://stackoverflow.com/questions/1276763/how-do-i-get-the-list-of-keys-in-a-dictionary
+
+            HashMap<TileType, Texture2D> dictionaryDefault = new HashMap<TileType, Texture2D> { };
+
+            // https://stackoverflow.com/questions/3301678/how-to-declare-an-array-of-objects-in-c-sharp
+
+
+            foreach (String key in keyList)
             {
-                { TileType.DIRT1, Content.Load<Texture2D>("Tiles/Dirt") },
-                { TileType.DIRT2, Content.Load<Texture2D>("Tiles/DirtTwo") },
-                { TileType.GRASS, Content.Load<Texture2D>("Tiles/Grass") },
-                { TileType.DIRT3, Content.Load<Texture2D>("Tiles/DirtThree") },
-                { TileType.GRASS2, Content.Load<Texture2D>("Tiles/GrassTwo") },
-                { TileType.STONE, Content.Load<Texture2D>("Tiles/Stone") },
-                { TileType.DEEPROCK1, Content.Load<Texture2D>("Tiles/DeeprockOne") },
-                { TileType.DEEPROCK2, Content.Load<Texture2D>("Tiles/DeeprockTwo") },
-                { TileType.DEEPROCK3, Content.Load<Texture2D>("Tiles/DeeprockThree") },
-                { TileType.DEEPROCK4, Content.Load<Texture2D>("Tiles/DeeprockFour") },
-                { TileType.PERMAFROST1, Content.Load<Texture2D>("Tiles/PermafrostOne") },
-                { TileType.PERMAFROST2, Content.Load<Texture2D>("Tiles/PermafrostTwo") },
-                { TileType.PERMAFROST3, Content.Load<Texture2D>("Tiles/PermafrostThree") },
-                { TileType.PERMAFROST4, Content.Load<Texture2D>("Tiles/PermafrostFour") },
-                { TileType.COPPERDEEPROCK, Content.Load<Texture2D>("Tiles/CopperDeeprock") },
-                { TileType.SNOW1, Content.Load<Texture2D>("Tiles/SnowOne") },
-                { TileType.SNOW2, Content.Load<Texture2D>("Tiles/SnowTwo") },
-                { TileType.SNOW3, Content.Load<Texture2D>("Tiles/SnowThree") },
-                { TileType.SNOW4, Content.Load<Texture2D>("Tiles/SnowFour") },
-                { TileType.SAND1, Content.Load<Texture2D>("Tiles/SandOne") },
-                { TileType.SAND2, Content.Load<Texture2D>("Tiles/SandTwo") },
-                { TileType.SAND3, Content.Load<Texture2D>("Tiles/SandThree") },
-                { TileType.SAND4, Content.Load<Texture2D>("Tiles/SandFour") },
-                { TileType.DIRT4, Content.Load<Texture2D>("Tiles/DirtFour") }
-            };
+                // Map to enum
+                Enum.TryParse(key, out TileType tileParsed);
+                dictionaryDefault.Add(tileParsed, texturesLoaded[key]);
+
+            }
+
+            //HashMap<TileType, Texture2D> dictionaryDefault = new HashMap<TileType, Texture2D> //Create json file reader instead
+            //{
+            //    { TileType.DIRT1, Content.Load<Texture2D>("Tiles/Dirt") },
+            //    { TileType.DIRT2, Content.Load<Texture2D>("Tiles/DirtTwo") },
+            //    { TileType.GRASS, Content.Load<Texture2D>("Tiles/Grass") },
+            //    { TileType.DIRT3, Content.Load<Texture2D>("Tiles/DirtThree") },
+            //    { TileType.GRASS2, Content.Load<Texture2D>("Tiles/GrassTwo") },
+            //    { TileType.STONE, Content.Load<Texture2D>("Tiles/Stone") },
+            //    { TileType.DEEPROCK1, Content.Load<Texture2D>("Tiles/DeeprockOne") },
+            //    { TileType.DEEPROCK2, Content.Load<Texture2D>("Tiles/DeeprockTwo") },
+            //    { TileType.DEEPROCK3, Content.Load<Texture2D>("Tiles/DeeprockThree") },
+            //    { TileType.DEEPROCK4, Content.Load<Texture2D>("Tiles/DeeprockFour") },
+            //    { TileType.PERMAFROST1, Content.Load<Texture2D>("Tiles/PermafrostOne") },
+            //    { TileType.PERMAFROST2, Content.Load<Texture2D>("Tiles/PermafrostTwo") },
+            //    { TileType.PERMAFROST3, Content.Load<Texture2D>("Tiles/PermafrostThree") },
+            //    { TileType.PERMAFROST4, Content.Load<Texture2D>("Tiles/PermafrostFour") },
+            //    { TileType.COPPERDEEPROCK, Content.Load<Texture2D>("Tiles/CopperDeeprock") },
+            //    { TileType.SNOW1, Content.Load<Texture2D>("Tiles/SnowOne") },
+            //    { TileType.SNOW2, Content.Load<Texture2D>("Tiles/SnowTwo") },
+            //    { TileType.SNOW3, Content.Load<Texture2D>("Tiles/SnowThree") },
+            //    { TileType.SNOW4, Content.Load<Texture2D>("Tiles/SnowFour") },
+            //    { TileType.SAND1, Content.Load<Texture2D>("Tiles/SandOne") },
+            //    { TileType.SAND2, Content.Load<Texture2D>("Tiles/SandTwo") },
+            //    { TileType.SAND3, Content.Load<Texture2D>("Tiles/SandThree") },
+            //    { TileType.SAND4, Content.Load<Texture2D>("Tiles/SandFour") },
+            //    { TileType.DIRT4, Content.Load<Texture2D>("Tiles/DirtFour") }
+            //};
+
+            
+
+
+
+
             playerTextureDictionary.Add(Player.PlayerTextures.Body, Content.Load<Texture2D>("Player/BeautifulPlayerCharacter"));
             
             tileTextureDictionary[Covering.NONE] = dictionaryDefault;

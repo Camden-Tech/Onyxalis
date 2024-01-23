@@ -78,15 +78,17 @@ namespace Icaria.Engine.Procedural
             ix += seed;
             iy += seed;
 
-            // the trick used for hashing on non-periodic noise doesn't work here.
-            // instead we create a periodic value for each coordinate using a multiply and bitshift
-            // instead of a mod operator, then plug those values into an efficient hash function. 
-            // left, lower, right, and upper are the periodic hash inputs.
-            // period.xf = uint.MaxValue / xPeriod and
-            // period.yf = uint.MaxValue / yPeriod.
-            // this means that the multiply wraps back to zero at the period with an overflow
-            // that doesn't effect the bits and a slight error that is removed by a right shift.
-            int left = ix * period.xf; 
+            /*the trick used for hashing on non - periodic noise doesn't work here.
+
+            instead we create a periodic value for each coordinate using a multiply and bitshift
+             instead of a mod operator, then plug those values into an efficient hash function. 
+             left, lower, right, and upper are the periodic hash inputs.
+             period.xf = uint.MaxValue / xPeriod and
+             period.yf = uint.MaxValue / yPeriod.
+             this means that the multiply wraps back to zero at the period with an overflow
+             that doesn't effect the bits and a slight error that is removed by a right shift.
+            */
+            int left = ix * period.xf;
             int lower = iy * period.yf; 
             int right = left + period.xf; 
             int upper = lower + period.yf; 

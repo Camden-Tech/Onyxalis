@@ -24,6 +24,7 @@ namespace Onyxalis.Objects.Entities
             staminaCap = 0;
             hunger = 0;
             hungerCap = 0;
+            gravity = 10;
             // rectangular hitbox
             
             // Top left, top right, bottom left, bottom right
@@ -70,6 +71,8 @@ namespace Onyxalis.Objects.Entities
         public int hunger;
 
         public int hungerCap;
+
+        public bool canJump;
 
     }
 }
