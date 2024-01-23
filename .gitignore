@@ -11,7 +11,7 @@
 *.sln.docstates
 
 #worlds
-Onyxalis/Worlds
+Worlds
 
 # User-specific files (MonoDevelop/Xamarin Studio)
 *.userprefs
