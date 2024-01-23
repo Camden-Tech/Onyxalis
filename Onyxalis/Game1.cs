@@ -119,7 +119,10 @@ namespace Onyxalis
             {
                 // Map to enum
                 Enum.TryParse(key, out TileType tileParsed);
-                dictionaryDefault.Add(tileParsed, texturesLoaded[key]);
+                Debug.WriteLine(tileParsed);
+                string textureLoaded = texturesLoaded[key];
+                Debug.WriteLine(textureLoaded);
+                dictionaryDefault.Add(tileParsed, Content.Load<Texture2D>(textureLoaded));
 
             }
 
@@ -151,7 +154,7 @@ namespace Onyxalis
             //    { TileType.DIRT4, Content.Load<Texture2D>("Tiles/DirtFour") }
             //};
 
-            
+
 
 
 
