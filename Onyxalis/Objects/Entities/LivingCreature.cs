@@ -137,7 +137,7 @@ namespace Onyxalis.Objects.Entities
         public Hitbox[] getTileHitboxesNearCreature()
         {
             List<Hitbox> hitboxes = new List<Hitbox>();
-            (int X, int Y) pos = World.findTilePosition(position.X, position.Y);
+            (int X, int Y) pos = World.findTilePosition((int)position.X, (int)position.Y);
             float textureSizeX = (hitbox.farthestVertice.X / Tile.tilesize) + 1;
             float textureSizeY = (hitbox.farthestVertice.Y / Tile.tilesize);
             for (int X = 0; X < textureSizeX; X++)

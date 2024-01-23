@@ -5,17 +5,23 @@ using Onyxalis.Objects.Worlds;
 using Onyxalis.Objects.Entities;
 using Onyxalis.Objects.UI;
 using System.Collections.Generic;
-using MiNET.Blocks;
 using System.Diagnostics;
 using Onyxalis.Objects.Tiles;
 using Lucene.Net.Support;
 using Onyxalis.Objects.Math;
 using static Onyxalis.Objects.Tiles.Tile;
-using MiNET.Entities.Hostile;
 using System;
+using OpenTK;
+using OpenTK.Graphics;
+using OpenTK.Graphics.OpenGL;
 using Onyxalis.Objects.Systems;
-using System.Reflection.Metadata.Ecma335;
-using Org.BouncyCastle.Asn1.Mozilla;
+
+using OpenTK.Windowing.Desktop;
+using OpenTK.Windowing.Common;
+using System.IO;
+using Onyxalis.Objects.Shaders;
+using System.Threading.Tasks;
+using System.Collections.Concurrent;
 
 namespace Onyxalis
 {
@@ -34,6 +40,10 @@ namespace Onyxalis
         public static HashMap<Covering, Texture2D> tileOverlays = new HashMap<Covering, Texture2D>();
         public static HashMap<Player.PlayerTextures, Texture2D> playerTextureDictionary = new HashMap<Player.PlayerTextures, Texture2D>();
         public static HashMap<TileType, Texture2D[,]> multiTilePieces = new HashMap<TileType, Texture2D[,]>();
+        public static HashMap<Shaders.Shader, Effect> shaderEffect = new HashMap<Shaders.Shader, Effect>();
+        public string onyxalisDirectory;
+
+
         public enum GameState
         {
             Menu,
@@ -50,6 +60,7 @@ namespace Onyxalis
             _graphics.PreferredBackBufferWidth = 1920;
             _graphics.PreferredBackBufferHeight = 1080;
             _graphics.ApplyChanges();
+
 
         }
 
@@ -88,6 +99,9 @@ namespace Onyxalis
         protected override void LoadContent()
         {
             _spriteBatch = new SpriteBatch(GraphicsDevice);
+
+
+
             HashMap<TileType, Texture2D> dictionaryDefault = new HashMap<TileType, Texture2D> //Create json file reader instead
             {
                 { TileType.DIRT1, Content.Load<Texture2D>("Tiles/Dirt") },
@@ -155,10 +169,6 @@ namespace Onyxalis
                 multiTilePieces[type] = pieces;
             }
 
-
-            
-
-
         // TODO: use this.Content to load your game content here
         Texture2D texture = playerTextureDictionary[Player.PlayerTextures.Body];
             player.hitbox = new Hitbox(new Vector2[] { new Vector2(0,0), new Vector2(texture.Width, 0), new Vector2(texture.Width, -texture.Height), new Vector2(0, -texture.Height) }, player.position, 2);
@@ -217,7 +227,6 @@ namespace Onyxalis
                 } else
                 {
                     c.loaded = false;
-                    world.loadedChunks[pos] = c;
                 }
             }
 
@@ -234,94 +243,83 @@ namespace Onyxalis
                 _graphics.PreferredBackBufferWidth + viewportPadding * 2,
                 _graphics.PreferredBackBufferHeight + viewportPadding * 2);
 
-            bool shouldUpdateLights = redoLights > 4;
+            bool shouldUpdateLights = redoLights > 60;
            
             List<Light> lightTiles = new List<Light>();
-
-            foreach (Chunk chunk in world.loadedChunks.Values)
+            ConcurrentBag<Tile> tiles = new ConcurrentBag<Tile>();
+            ConcurrentBag<Background> backgrounds = new ConcurrentBag<Background>();//Thread safe list
+            (float intenseMult, int div) = world.CalculateSunlight();
+            
+            Parallel.ForEach(world.loadedChunks.Values, chunk =>
             {
-                for (int X = 0; X < 64; X++)
+                Parallel.For(0, 64, X =>
                 {
                     for (int Y = 0; Y < 64; Y++)
                     {
                         Tile tile = chunk.tiles[X, Y];
-                        
+
                         if (tile != null)
                         {
-                            
                             Vector2 tileWorldPosition = new Vector2(tile.x * Tile.tilesize, tile.y * -Tile.tilesize);
                             if (viewport.Contains(tileWorldPosition))
                             {
-                                if (shouldUpdateLights)
+                                if (shouldUpdateLights || !tile.hasColor)
                                 {
-                                    UpdateTileSunLighting(tile, world, world.CalculateSunlight(tile.x, tile.y));
+                                    Light sun = new Light();
+                                    sun.x = div + tile.x;
+                                    sun.y = 80 + tile.y;
+                                    sun.color = Color.White;
+                                    sun.intensity = 5 * intenseMult;
+                                    sun.range = 100;
+                                    tile.UpdateTileSunLighting( world, sun);
                                 }
-                                UpdateTileLighting(tile, lightTiles, world);
-                                
+                                tile.UpdateTileLighting(lightTiles, world);
 
-                                DrawTile(tile);
+                                tiles.Add(tile);
+
+                            }
+                        } else
+                        {
+                            Background background = chunk.backgrounds[X, Y];
+                            if (background != null)
+                            {
+                                Vector2 tileWorldPosition = new Vector2(background.x * Tile.tilesize, background.y * -Tile.tilesize);
+                                if (viewport.Contains(tileWorldPosition))
+                                {
+                                    if (shouldUpdateLights || !background.hasColor)
+                                    {
+                                        Light sun = new Light();
+                                        sun.x = div + background.x;
+                                        sun.y = 80 + background.y;
+                                        sun.color = Color.White;
+                                        sun.intensity = 5 * intenseMult;
+                                        sun.range = 100;
+                                        background.UpdateBackgroundSunLighting(world, sun);
+                                    }
+                                    background.UpdateBackgroundLighting(lightTiles, world);
+                                    backgrounds.Add(background);
+                                }
                             }
                         }
                     }
-                }
+                });
+            });
+
+            foreach (Tile tile in tiles)
+            {
+                DrawTile(tile);
             }
-            if(shouldUpdateLights)
+            foreach (Background background in backgrounds)
+            {
+                DrawBackground(background);
+            }
+            if (shouldUpdateLights)
             {
                 redoLights = 0;
             }
         }
 
-        private void UpdateTileLighting(Tile tile, List<Light> lightTiles, World world)
-        {
-            Color finalColor = tile.sunLight; // Base ambient light
-            foreach (Light light in lightTiles)
-            {
-                float dx = tile.x - light.x;
-                float dy = tile.y - light.y;
-                float distanceSquared = dx * dx + dy * dy;
-                float lightRangeSquared = light.range * light.range;
-                if (distanceSquared < lightRangeSquared)
-                {
-                    int level = Shadows.IsLineOfSightClear((tile.x, tile.y), (light.x, light.y), world, light);
-                    float maxLevel = light.intensity * 4;
-                    if (level <= maxLevel)
-                    {
-                        float attenuation = 1 - (MathF.Sqrt(distanceSquared) / light.range);
-                        Color lightColor = Color.Multiply(light.color, attenuation * (1 - (level / maxLevel)) * light.intensity / 2);
-                        lightColor.A = 255;
-                        finalColor = TextureGenerator.addColors(finalColor, lightColor);
-                    }
-                }
-            }
-            tile.lightColor = finalColor;
-            tile.hasColor = true;
-        }
-        private void UpdateTileSunLighting(Tile tile, World world, Light sun)
-        {
-            Color finalColor = new Color(0, 0, 0); // Base ambient light
-            if (world.day && tile.y > -90)
-            {
-                float dx = tile.x - sun.x;
-                float dy = tile.y - sun.y;
-                float distanceSquared = dx * dx + dy * dy;
-                float lightRangeSquared = sun.range * sun.range;
 
-                if (distanceSquared < lightRangeSquared)
-                {
-                    int level = Shadows.IsLineOfSightClear((tile.x, tile.y), (sun.x, sun.y), world, sun);
-                    float maxLevel = sun.intensity * 4;
-                    if (level <= maxLevel)
-                    {
-                        float attenuation = 1 - (MathF.Sqrt(distanceSquared) / sun.range);
-                        Color lightColor = Color.Multiply(sun.color, attenuation * (1 - (level / maxLevel)) * sun.intensity / 2);
-                        lightColor.A = 255;
-                        finalColor = TextureGenerator.addColors(finalColor, lightColor);
-                    }
-                }
-            }
-
-            tile.sunLight = finalColor;
-        }
 
         private void DrawTile(Tile tile)
         {
@@ -331,10 +329,18 @@ namespace Onyxalis
             {
                 tileTexture = tileTextureDictionary[Tile.Covering.NONE][tile.Type];
             }
-            Vector2 origin = new Vector2(tileTexture.Width / 2f, tileTexture.Height / 2f);
+            Vector2 origin = new Vector2(tileTexture.Width / 2, tileTexture.Height / 2);
             Vector2 pos = new Vector2(tile.x * Tile.tilesize - camera.position.X, tile.y * -Tile.tilesize + camera.position.Y);
-            // _spriteBatch.Draw(tileTexture, pos, null, tile.lightColor, MathHelper.ToRadians(90 * tile.rotation), origin, 2, SpriteEffects.None, 0);
-            _spriteBatch.Draw(tileTexture, pos, null, Color.White, MathHelper.ToRadians(90 * tile.rotation), origin, 2, SpriteEffects.None, 0);
+            _spriteBatch.Draw(tileTexture, pos, null, tile.lightColor, tile.rotation, origin, 2, SpriteEffects.None, 0);
+        }
+        private void DrawBackground(Background tile)
+        {
+            
+            Texture2D tileTexture = tileTextureDictionary[Tile.Covering.NONE][tile.type];
+            
+            Vector2 origin = new Vector2(tileTexture.Width / 2, tileTexture.Height / 2);
+            Vector2 pos = new Vector2(tile.x * Tile.tilesize - camera.position.X, tile.y * -Tile.tilesize + camera.position.Y);
+            _spriteBatch.Draw(tileTexture, pos, null, TextureGenerator.multiplyColor(tile.lightColor,0.5f), 0, origin, 2, SpriteEffects.None, 0);
         }
         public void drawPlayer()
         {
@@ -352,7 +358,7 @@ namespace Onyxalis
             GraphicsDevice.Clear(Color.CornflowerBlue);
             _spriteBatch.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend,
                    SamplerState.PointClamp, DepthStencilState.Default,
-                   RasterizerState.CullCounterClockwise, null,
+                   RasterizerState.CullCounterClockwise, null, //Effect
                    Matrix.Identity);
 
             switch (state)

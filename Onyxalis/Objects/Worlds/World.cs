@@ -9,6 +9,7 @@ using Onyxalis.Objects.Math;
 using Onyxalis.Objects.Systems;
 using Onyxalis.Objects.Tiles;
 using Org.BouncyCastle.Tls.Crypto.Impl.BC;
+using SixLabors.ImageSharp;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -61,7 +62,7 @@ namespace Onyxalis.Objects.Worlds
                     Chunk cChunk = world.GetChunk(chunk.cX, chunk.cY);
                     if (cChunk != null) {
                         tile = cChunk.tiles[tileInChunk.tX, tileInChunk.tY];
-                    } 
+                    }
                     return tile;
                 }
                 set
@@ -98,13 +99,44 @@ namespace Onyxalis.Objects.Worlds
             return world;
         }
 
-        public static (int x, int y) findTilePosition(float X, float Y)
+        /*public static (int x, int y) findTilePosition(float X, float Y)
         {
             return ((int)MathF.Round((X - (Tile.tilesize / 2 - 0.5f)) / Tile.tilesize), (int)MathF.Round((Y - (Tile.tilesize / 2 - 0.5f)) / Tile.tilesize));
         }
         public static (int x, int y) findChunk(int X, int Y)
         {
             return ((int)MathF.Round((X - 31.5f) / 64f), (int)(MathF.Round((Y - 31.5f) / 64f))); 
+        }*/
+
+
+        // Chat Gpt Response
+        public static (int x, int y) findTilePosition(int X, int Y)
+        {
+            int x = fallsBetween(X, Tile.tilesize);
+            int y = fallsBetween(Y, Tile.tilesize);
+            return (x, y);
+        }
+
+        public static (int X, int Y) findChunk(int X, int Y)
+        {
+            int x = fallsBetween(X, 64);
+            int y = fallsBetween(Y, 64);
+            return (x, y);
+        }
+
+        public static int fallsBetween(int number, int divideBy)
+        {
+            bool isNegative = number < 0;
+
+            // Adjust the number for negative values
+            if (isNegative)
+            {
+                number -= 63;
+            }
+
+            int category = number / divideBy;
+
+            return category;
         }
 
         public void UnloadChunk((int x, int y) pos)
@@ -135,21 +167,16 @@ namespace Onyxalis.Objects.Worlds
             return path;
         }
 
-        public Light CalculateSunlight(int x, int y)
+        public (float intensityMult, int div) CalculateSunlight()
         {
-            Light sun = new Light();
-            float subt = (time - dayTimeLength / 2);
-            float div = subt / dayTimeLength;
-            float intensityMult = -MathF.Pow(div * 2f, 2) + 1.5f;
+            float subt = (time - dayTimeLength / 2f);
+            float divd = (subt / dayTimeLength);
+            float intensityMult = -MathF.Pow(divd * 2, 2f) + 1;
+            int div = (int)(divd * 8);
             if (intensityMult > 1) intensityMult = 1;
 
-            sun.x = (int)(div * 5) + x; // Adjust for your game's scale
-            sun.y = 100 + y; // Adjust for your game's scale
-            sun.color = Color.White;
-            sun.range = 200;
-            sun.intensity = 5 * intensityMult;
 
-            return sun;
+            return (intensityMult, div);
         }
         public static Chunk retrieveChunk(string filePath)
         {
@@ -210,7 +237,15 @@ namespace Onyxalis.Objects.Worlds
         public Chunk GetChunk(int x, int y)
         {
             Chunk chunk = loadedChunks[(x, y)];
-            if (chunk == null) chunk = retrieveChunk(GenerateChunkFilepath((x, y)));
+            if (chunk == null)
+            {
+                chunk = retrieveChunk(GenerateChunkFilepath((x, y)));
+                if(chunk != null)
+                {
+                    loadedChunks.Add((chunk.x, chunk.y), chunk);
+                }
+            }
+            
             if (chunk == null) chunk = Chunk.CreateChunk(x, y, this, true);
             return chunk;
         }
@@ -266,13 +301,11 @@ namespace Onyxalis.Objects.Worlds
 
         public Biome getBiome(int x, int y)
         {
-            float temperature = ((PerlinNoiseGenerator.GeneratePerlinNoise(1, 1f, 0.04f, 1, seed, x)) + 0.5f) * 170 - 60;
-            float heightTemp = -y / 2 + MathF.Pow(MathF.Abs(y / 2) , 1.25f) * (y >= 0 ? -1 : 1);
+            float temperature = ((PerlinNoiseGenerator.GeneratePerlinNoise(1, 1f, 0.04f, 1, seed, x)) + 0.5f) * 170f - 60f;
+            float heightTemp = -y / 2 + MathF.Pow(MathF.Abs(y / 2) , 1.25f) * (y >= 0 ? -1f : 1f);
             float amplitude = ((PerlinNoiseGenerator.GeneratePerlinNoise(4, 0.25f, 1, 3, seed, x) / 1.33203125f + 1.5f))
-                + MathF.Pow(((PerlinNoiseGenerator.GeneratePerlinNoise(4, 0.25f, 1, 2.75f, seed + 2, x) / 1.33203125f + 1.325f)), 10);
+                + MathF.Pow(((PerlinNoiseGenerator.GeneratePerlinNoise(4, 0.25f, 1, 2.75f, seed + 2, x) / 1.33203125f + 1.325f)), 10f);
             float hBiome = ((PerlinNoiseGenerator.GeneratePerlinNoise(1, 1f, 0.2f, 1, seed + 3, x)) + 0.5f);
-
-
 
             Biome biome = new Biome(Biome.GetHorizontalTerrainType(hBiome), temperature, amplitude, heightTemp);
             return biome;

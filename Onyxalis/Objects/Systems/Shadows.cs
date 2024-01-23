@@ -58,7 +58,7 @@ namespace Onyxalis.Objects.Systems
                 originalColor.A // Preserving the original alpha value
             );
         }
-        public static int IsLineOfSightClear((int x, int y) start, (int x, int y) end, World world, Light light)
+        public static int IsLineOfSightClear((int x, int y) start, (int x, int y) end, World world, float intensity)
         {
             int x = start.x;
             int y = start.y;
@@ -74,7 +74,7 @@ namespace Onyxalis.Objects.Systems
                 if (TileBlocksLight(x, y, world))
                 {
                     level++;
-                    if (level > light.intensity * 4 - 1)
+                    if (level > intensity * 4 - 1)
                     {
                         return level; // If the light level exceeds the threshold, return the current level
                     }

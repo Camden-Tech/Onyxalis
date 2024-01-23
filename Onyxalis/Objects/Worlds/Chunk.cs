@@ -1,7 +1,9 @@
-﻿using Icaria.Engine.Procedural;
+﻿
+using Icaria.Engine.Procedural;
 using Lucene.Net.Search;
 using Lucene.Net.Support;
 using Maybe.SkipList;
+using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using MiNET.Effects;
 using MiNET.Entities.Hostile;
@@ -28,7 +30,9 @@ namespace Onyxalis.Objects.Worlds
     
     public class Chunk
     {
-        public Tile[,] tiles = new Tile[64,64];
+
+        public Tile[,] tiles = new Tile[64, 64];
+        public Background[,] backgrounds = new Background[64, 64];
 
         public HashMap<UUID, LivingCreature> nonPlayers;
         
@@ -58,7 +62,7 @@ namespace Onyxalis.Objects.Worlds
             const int size = 64;
             float[,] cavemap = new float[size, size];
 
-            for (int X = 0; X < size; X++)
+            Parallel.For(0, size, X =>
             {
                 int adjustedX = x * size + X;
                 for (int Y = 0; Y < size; Y++)
@@ -66,7 +70,7 @@ namespace Onyxalis.Objects.Worlds
                     int adjustedY = y * size + Y;
                     cavemap[X, Y] = CalculateCaveValue(adjustedX, adjustedY, world);
                 }
-            }
+            });
 
             return cavemap;
         }
@@ -112,14 +116,12 @@ namespace Onyxalis.Objects.Worlds
         }
 
 
-
-
         public static float[,] GenerateMossMap(int x, int y, World world)
         {
             const int size = 64;
             float[,] mossmap = new float[size, size];
 
-            for (int X = 0; X < size; X++)
+            Parallel.For(0, size, X =>
             {
                 int adjustedX = x * size + X;
                 for (int Y = 0; Y < size; Y++)
@@ -127,7 +129,7 @@ namespace Onyxalis.Objects.Worlds
                     int adjustedY = y * size + Y;
                     mossmap[X, Y] = CalculateMossValue(adjustedX, adjustedY, world);
                 }
-            }
+            });
             return mossmap;
         }
 
@@ -146,19 +148,13 @@ namespace Onyxalis.Objects.Worlds
 
         public static bool canGenerateTile(int Y, float height, float caveNoise)
         {
-            float adjustedNoiseGap = 0;
-            if (Y <= height) {
+          
 
-                float diff = height + 1 - Y;
-                if (diff > 120) adjustedNoiseGap = 0;
+            float diff = height + 1 - Y;
+            if (diff > 120) return caveNoise <= 0.6f && caveNoise >= 0.4f;
 
-                else adjustedNoiseGap = 0.09f * (1 - diff / 120);
-                if (!(caveNoise > 0.4 + adjustedNoiseGap) || !(caveNoise < 0.6 - adjustedNoiseGap))
-                {
-                    return true;
-                }
-            }
-            return false;
+            float adjustedNoiseGap = 0.09f * (1 - diff / 120);
+            return !(caveNoise > 0.4 + adjustedNoiseGap && caveNoise < 0.6 - adjustedNoiseGap);
         }
 
         public Tile createTile(int x, int y, (int x, int y) chunkPos, int rotation, Tile.TileType type)
@@ -170,7 +166,7 @@ namespace Onyxalis.Objects.Worlds
                 x = adjX,
                 chunkPos = chunkPos,
                 y = adjY,
-                rotation = rotation,
+                rotation = setRotation(rotation),
                 Type = type,
                 covering = Tile.Covering.NONE
             };
@@ -208,7 +204,7 @@ namespace Onyxalis.Objects.Worlds
                         x = adjX,
                         chunkPos = chunkPos,
                         y = adjY,
-                        rotation = rotation,
+                        rotation = setRotation(rotation),
                         Type = type,
                         multiTile = true,
                         originalPos = (adjX, adjY),
@@ -235,30 +231,29 @@ namespace Onyxalis.Objects.Worlds
             return biome.temperature + biome.heightTemp < 0;
         }
 
-        private Tile GenerateTile(int X, int Y)
+        private (bool, Tile) GenerateTile(int X, int Y, float height, int intHeight)
         {
-            float height = heightMap[X];
-            if (!canGenerateTile(Y, height, caveMap[X, Y])) return null;
+
+            bool background = false;
+            if (Y > height) return (false, null);
+            if (!canGenerateTile(Y, height, caveMap[X, Y])) background = true;
 
             bool freezing = tooCold(biome);
             bool hot = tooHot(biome);
-            int intHeight = (int)height;
-            bool belowHeightMap = height - Y <= 0;
-
-            if (belowHeightMap) return null;
+            
 
             bool matchesHeight = Y == intHeight;
             if (height >= -75f && matchesHeight)
             {
-                return GenerateSurfaceTile(X, Y, freezing, hot);
+                return (background, GenerateSurfaceTile(X, Y, freezing, hot));
             }
             else if (Y < intHeight - 40)
             {
-                return GenerateSubSurfaceTile(X, Y, intHeight, freezing);
+                return (background, GenerateSubSurfaceTile(X, Y, intHeight, freezing));
             }
             else
             {
-                return hot ? GenerateSand(X, Y) : GenerateDirt(X, Y);
+                return (background, hot ? GenerateSand(X, Y) : GenerateDirt(X, Y));
             }
         }
 
@@ -293,7 +288,7 @@ namespace Onyxalis.Objects.Worlds
 
         public Tile[,] GenerateGrass(int X, int Y)
         {
-            if (Game1.GameRandom.Next(5) > 3)
+            if (Game1.GameRandom.Next(5) > 2 + (MathF.Abs(biome.temperature - 60)) / 20)
             {
                 Tile.TileType type = getTileTypeBetweenTileTypes(Tile.TileType.SHORTGRASS, Tile.TileType.LONGGRASS);
                 int rotation = 0;
@@ -436,14 +431,29 @@ namespace Onyxalis.Objects.Worlds
         {
             Parallel.For(0, 64, X =>
             {
+                float height = heightMap[X];
+                int intHeight = (int)height;
                 for (int Y = 0; Y < 64; Y++)
                 {
-                    Tile tile = GenerateTile(X, Y);
+                    (bool backdrop, Tile tile) = GenerateTile(X, Y, height, intHeight);
                     if (tile != null)
                     {
-                        tiles[X, Y] = tile;
+                        if (backdrop)
+                        {
+                            Background background = new Background
+                            {
+                                x = tile.x,
+                                y = tile.y,
+                                type = tile.Type
+                            };
+                            backgrounds[X, Y] = background;
+                        } else tiles[X, Y] = tile;
+
+
                     }
+                        
                 }
+                
             });
         }
 
@@ -494,6 +504,7 @@ namespace Onyxalis.Objects.Worlds
                     bool goBack = false;
                     if (tileArray != null)
                     {
+                        int l = tileArray.GetLength(1);
                         foreach (Tile tile1 in tileArray)
                         {
                             if (tile1 != null)
@@ -501,8 +512,13 @@ namespace Onyxalis.Objects.Worlds
                                 if (world.tiles[tile1.x, tile1.y] != null)
                                 {
                                     goBack = true;
+                                    break;
                                 }
-                                if (world.tiles[tile1.x, tile1.originalPos.y - tileArray.GetLength(1)] == null) goBack = true;
+                                if (world.tiles[tile1.x, tile1.originalPos.y - l] == null) 
+                                { 
+                                    goBack = true;
+                                    break;
+                                }
 
                             }
                             else
@@ -574,7 +590,10 @@ namespace Onyxalis.Objects.Worlds
             }
         }
 
-
+        public float setRotation(float x)
+        {
+            return MathHelper.ToRadians(x * 90);
+        }
 
 
 
@@ -607,7 +626,7 @@ namespace Onyxalis.Objects.Worlds
         {
             int adjX = X - x * 64;
             int adjY = Y - y * 64;
-            if(adjX > 63 || adjX < 0 || adjY > 63 || adjY < 0){
+            if(adjX > 63 || adjX < 0 || adjY > 63 || adjY < 0) {
                 
                 (int x, int y) pos = World.findChunk(X, Y);
                 Chunk c = world.loadedChunks[pos];
@@ -625,7 +644,6 @@ namespace Onyxalis.Objects.Worlds
                         partialChunk = new PartialChunk();
                         partialChunk.x = pos.x;
                         partialChunk.y = pos.y;
-
                     }
                     tile.chunkPos = pos;
                     partialChunk.tiles[X - pos.x * 64, Y - pos.y * 64] = tile;

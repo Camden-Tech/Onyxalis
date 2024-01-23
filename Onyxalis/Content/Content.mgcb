@@ -157,6 +157,12 @@
 /processorParam:TextureFormat=Color
 /build:Player/BeautifulPlayerCharacter.png
 
+#begin Shaders/LineOfSight.fx
+/importer:EffectImporter
+/processor:EffectProcessor
+/processorParam:DebugMode=Auto
+/build:Shaders/LineOfSight.fx
+
 #begin Tiles/CopperDeeprock.png
 /importer:TextureImporter
 /processor:TextureProcessor
