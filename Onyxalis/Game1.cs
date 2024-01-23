@@ -46,7 +46,6 @@ namespace Onyxalis
         public static HashMap<Shaders.Shader, Effect> shaderEffect = new HashMap<Shaders.Shader, Effect>();
         public string onyxalisDirectory;
 
-
         public enum GameState
         {
             Menu,
