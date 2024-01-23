@@ -1,4 +1,4 @@
-﻿using AStarNavigator;
+﻿
 using Microsoft.Xna.Framework;
 using Onyxalis.Objects.Math;
 using Onyxalis.Objects.Systems;

@@ -213,6 +213,7 @@ namespace Onyxalis.Objects.Worlds
                     };
                     (Tile.DigType digType, int health) = Tile.TileDictionary[tile.Type];
                     tile.health = health;
+                    
                     tile.digType = digType;
                     tile.hitbox.Position = new Microsoft.Xna.Framework.Vector2(tile.x * Tile.tilesize, tile.y * Tile.tilesize);
                     tiles[X,Y] = tile;
