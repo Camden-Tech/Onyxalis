@@ -14,9 +14,10 @@
        <li>1 of all the players that spawn in will spawn in with the Onyxalis.</li><br>
        <li>The Onyxalis must be kept safe.</li><br>
        <li>Death is permanent.</li><br>
-       <li>Players that die directly oppose the surviving players by becoming Wraiths.</li><br>
+       <li>Players that die become wraiths. Their job is to protect living players.</li><br>
        <li>If the Player that holds the Onyxalis dies, the Onyxalis is destroyed.</li><br>
        <li>If the Onyxalis gets destroyed, all of the surviving players enter Hardcore Mode (Increases the difficulty and sets a timer for all living players)</li> <br>
+       <li>Wraiths can attack living players in Hardcore Mode. </li><br>
        <li>Once the Onyxalis is destroyed, it drops shards that may be picked up by surviving players and repaired given enough time, and normal gameplay will resume.</li><br>
        <li>The game ends when every player is dead. </li><br>
 </ul>
